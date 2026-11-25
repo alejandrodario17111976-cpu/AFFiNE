@@ -34,3 +34,17 @@ python3 src/mix.py mux guia_ingles_the_last_of_us.mp4
 
 El guion completo está en `src/script.py`.
 Fuentes: Patrick Hand, Kalam (OFL) y Permanent Marker (Apache 2.0), de Google Fonts.
+
+## Versión 2: estilo "reel 3D" (`src_v2/`)
+
+Mismo guion y contenido, con otro estilo visual y otra voz:
+
+- Personaje original de dibujo animado con volumen (sombreado), estudio gris, colchoneta turquesa.
+- Etiqueta naranja con el tema, insignia blanca con la sección y subtítulos palabra por palabra arriba.
+- Voz masculina en español (Kokoro `em_alex`), también para los ejemplos en inglés.
+- Fuente Nunito (OFL).
+
+```bash
+python3 src_v2/tts.py && python3 src_v2/render.py all 4 && python3 src_v2/mix.py
+python3 src_v2/mix.py mux guia_ingles_estilo_3d.mp4
+```

@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+ * Dirección: brutalismo de volante de supermercado.
+ * Primarios puros que compiten de igual a igual, tipografías del sistema,
+ * bordes gruesos y sombras duras sin desenfoque.
+ */
+@theme {
+  --color-rojo: #ff0000;
+  --color-amarillo: #ffff00;
+  --color-azul: #0000ff;
+  --color-negro: #000000;
+  --color-blanco: #ffffff;
+
+  --font-display: "Arial Black", "Arial Bold", Gadget, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+  --font-serif: "Times New Roman", Times, serif;
+
+  --shadow-duro: 8px 8px 0 #000;
+  --shadow-duro-sm: 4px 4px 0 #000;
+}
+
+:root {
+  --alto-encabezado: 104px; /* encabezado + fila de secciones en celulares */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --alto-encabezado: 64px;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+.font-display {
+  font-weight: 900;
+}
+
+section[id],
+footer[id] {
+  scroll-margin-top: var(--alto-encabezado);
+}
+
+::selection {
+  background: #ffff00;
+  color: #000000;
+}
+
+:focus-visible {
+  outline: 4px solid #0000ff;
+  outline-offset: 2px;
+}
+
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* Borde inferior dentado del ticket de caja */
+.borde-ticket {
+  --diente: 12px;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--diente)) 100%;
+}
+
+/* Cinta de categorías que corre en la portada */
+@keyframes cinta {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.cinta {
+  animation: cinta 36s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cinta {
+    animation: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}

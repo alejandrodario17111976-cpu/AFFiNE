@@ -43,3 +43,6 @@ next-env.d.ts
 
 # vista previa generada
 /vista-previa/dist
+
+# El .gitignore de la raíz del repo excluye las carpetas "lib"; esta sí es parte del sitio
+!/src/lib/

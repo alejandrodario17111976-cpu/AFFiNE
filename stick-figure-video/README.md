@@ -48,3 +48,17 @@ Mismo guion y contenido, con otro estilo visual y otra voz:
 python3 src_v2/tts.py && python3 src_v2/render.py all 4 && python3 src_v2/mix.py
 python3 src_v2/mix.py mux guia_ingles_estilo_3d.mp4
 ```
+
+## Versión 3 (`src_v3/`)
+
+Igual que la versión 2, con estos cambios:
+
+- 68 ejemplos extra ("Más ejemplos") al final de cada tema de gramática (A–V).
+- Las palabras en inglés dentro de las frases se dicen más lento (velocidad 0.8).
+- Las oraciones completas en inglés usan una voz nativa masculina (Kokoro `am_fenrir`, velocidad 0.84);
+  la narración en español va a velocidad normal (`em_alex`, 1.0).
+
+```bash
+python3 src_v3/tts.py && python3 src_v3/render.py all 4 && python3 src_v3/mix.py
+python3 src_v3/mix.py mux guia_ingles_v3.mp4
+```

@@ -6,6 +6,7 @@ import { Environment, RoundedBox, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import type { Producto } from "@/lib/tipos";
+import { useMarca } from "@/lib/marca";
 import { texturaEtiqueta } from "./etiquetas";
 import { movimientoReducido, puntero, type Interaccion } from "./compartido";
 
@@ -39,7 +40,7 @@ function LuzQueSigueAlPuntero() {
   return (
     <>
       <primitive object={objetivo} position={[0, 0, 0]} />
-      <spotLight ref={luz} position={[0, 4, 6]} angle={0.55} penumbra={0.8} intensity={60} color="#FFF6D8" target={objetivo} />
+      <spotLight ref={luz} position={[0, 4, 6]} angle={0.5} penumbra={0.9} intensity={70} color="#FFE7B8" target={objetivo} />
     </>
   );
 }
@@ -51,9 +52,9 @@ export function LucesTienda({ dinamica = false }: { dinamica?: boolean }) {
   return (
     <>
       <Environment map={entorno} />
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[3, 5, 4]} intensity={2.2} />
-      <directionalLight position={[-5, 2, -3]} intensity={0.9} color="#B8C4FF" />
+      <ambientLight intensity={0.45} color="#FFF4E0" />
+      <directionalLight position={[3, 5, 4]} intensity={2.4} color="#FFF1DA" />
+      <directionalLight position={[-5, 2.5, -3]} intensity={1.1} color="#B9CBEA" />
       {dinamica && <LuzQueSigueAlPuntero />}
     </>
   );
@@ -114,7 +115,8 @@ const PERFIL_FRASCO = v2([
 ]);
 
 function Frasco({ p, calidad }: { p: Producto; calidad: Calidad }) {
-  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente"), [p]);
+  const marca = useMarca();
+  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente", marca), [p, marca]);
   return (
     <group position={[0, -0.97, 0]}>
       <mesh position={[0, 0.63, 0]}>
@@ -155,7 +157,8 @@ const PERFIL_BOTELLA = v2([
 ]);
 
 function Botella({ p, calidad }: { p: Producto; calidad: Calidad }) {
-  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente"), [p]);
+  const marca = useMarca();
+  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente", marca), [p, marca]);
   const liquido = p.contenido || "#D6ECFF";
   // Cuanto más oscuro el líquido, más opaca se ve la botella.
   const opacidad = useMemo(() => {
@@ -202,7 +205,8 @@ function Botella({ p, calidad }: { p: Producto; calidad: Calidad }) {
 }
 
 function Lata({ p }: { p: Producto }) {
-  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente"), [p]);
+  const marca = useMarca();
+  const etiqueta = useMemo(() => texturaEtiqueta(p, "envolvente", marca), [p, marca]);
   return (
     <group>
       <mesh>
@@ -230,13 +234,14 @@ function Lata({ p }: { p: Producto }) {
 }
 
 function useMaterialesCaja(p: Producto) {
+  const marca = useMarca();
   return useMemo(() => {
-    const etiqueta = texturaEtiqueta(p, "frente");
+    const etiqueta = texturaEtiqueta(p, "frente", marca);
     const frente = new THREE.MeshStandardMaterial({ map: etiqueta, roughness: 0.55 });
     const lado = new THREE.MeshStandardMaterial({ color: p.colorSecundario, roughness: 0.6 });
     const tapa = new THREE.MeshStandardMaterial({ color: p.color, roughness: 0.6 });
     return { frente, lado, tapa };
-  }, [p]);
+  }, [p, marca]);
 }
 
 function Caja({ p }: { p: Producto }) {
@@ -284,7 +289,8 @@ function Carton({ p }: { p: Producto }) {
 }
 
 function Bolsa({ p }: { p: Producto }) {
-  const etiqueta = useMemo(() => texturaEtiqueta(p, "frente"), [p]);
+  const marca = useMarca();
+  const etiqueta = useMemo(() => texturaEtiqueta(p, "frente", marca), [p, marca]);
   return (
     <group>
       <RoundedBox args={[1.3, 1.78, 0.56]} radius={0.22} smoothness={5}>
@@ -390,6 +396,27 @@ export function Producto3D({
       ) : (
         procedural
       )}
+    </group>
+  );
+}
+
+/** Mostrador giratorio de la portada: piedra clara con un aro dorado. */
+export function Pedestal({ radio, y = -1.32 }: { radio: number; y?: number }) {
+  const marca = useMarca();
+  return (
+    <group position={[0, y, 0]}>
+      <mesh>
+        <cylinderGeometry args={[radio, radio * 1.02, 0.22, 128]} />
+        <meshPhysicalMaterial color={marca.fondo} roughness={0.28} clearcoat={0.8} clearcoatRoughness={0.18} />
+      </mesh>
+      <mesh position={[0, 0.115, 0]} rotation-x={Math.PI / 2}>
+        <torusGeometry args={[radio * 0.995, 0.03, 16, 160]} />
+        <meshStandardMaterial color={marca.oro} metalness={1} roughness={0.22} />
+      </mesh>
+      <mesh position={[0, -0.25, 0]}>
+        <cylinderGeometry args={[radio * 1.02, radio * 0.94, 0.3, 128]} />
+        <meshStandardMaterial color={marca.oro} metalness={1} roughness={0.3} />
+      </mesh>
     </group>
   );
 }

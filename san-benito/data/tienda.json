@@ -1,7 +1,7 @@
 {
   "negocio": {
-    "nombre": "SAN BENITO",
-    "eslogan": "TU MEJOR ELECCIÓN",
+    "nombre": "San Benito",
+    "eslogan": "Tu mejor elección",
     "whatsapp": "",
     "direccion": "",
     "horarios": "",
@@ -9,12 +9,72 @@
     "locale": "es-AR",
     "moneda": "ARS"
   },
+  "apariencia": {
+    "colorPrincipal": "#26619C",
+    "colorAcento": "#C9A44C",
+    "colorDestacado": "#A11D33",
+    "colorFondo": "#F7F3EA",
+    "fuenteTitulos": "fraunces",
+    "fuenteTexto": "instrument"
+  },
+  "textos": {
+    "portadaTexto": "Elegí tus productos, armá el ticket y envialo al negocio.",
+    "botonProductos": "Ver productos",
+    "botonOfertas": "Ver ofertas",
+    "productosTitulo": "Productos",
+    "productosTexto": "",
+    "pasillosTitulo": "Pasillos",
+    "pasillosTexto": "Recorré el negocio por pasillo y entrá directo a lo que buscás.",
+    "ofertasTitulo": "Ofertas",
+    "ofertasTexto": "",
+    "comoComprarTitulo": "Cómo comprar",
+    "pasos": [
+      {
+        "titulo": "Elegí tus productos",
+        "texto": "Sumalos al ticket con el botón Agregar."
+      },
+      {
+        "titulo": "Revisá tu ticket",
+        "texto": "Ajustá las cantidades y mirá el total antes de enviarlo."
+      },
+      {
+        "titulo": "Envialo al negocio",
+        "texto": "Mandalo por WhatsApp o copialo para que te lo confirmen."
+      }
+    ],
+    "pieTexto": ""
+  },
+  "secciones": {
+    "pasillos": true,
+    "ofertas": true,
+    "comoComprar": true
+  },
   "categorias": [
-    { "id": "almacen", "nombre": "Almacén", "color": "rojo" },
-    { "id": "desayuno", "nombre": "Desayuno y merienda", "color": "amarillo" },
-    { "id": "bebidas", "nombre": "Bebidas", "color": "azul" },
-    { "id": "lacteos", "nombre": "Lácteos", "color": "rojo" },
-    { "id": "limpieza", "nombre": "Limpieza", "color": "amarillo" }
+    {
+      "id": "almacen",
+      "nombre": "Almacén",
+      "color": "destacado"
+    },
+    {
+      "id": "desayuno",
+      "nombre": "Desayuno y merienda",
+      "color": "acento"
+    },
+    {
+      "id": "bebidas",
+      "nombre": "Bebidas",
+      "color": "principal"
+    },
+    {
+      "id": "lacteos",
+      "nombre": "Lácteos",
+      "color": "acento"
+    },
+    {
+      "id": "limpieza",
+      "nombre": "Limpieza",
+      "color": "principal"
+    }
   ],
   "productos": [
     {
@@ -27,9 +87,9 @@
       "disponible": true,
       "destacado": true,
       "envase": "botella",
-      "color": "#FFFF00",
-      "colorSecundario": "#0000FF",
-      "contenido": "#FFC300",
+      "color": "#F3EBDD",
+      "colorSecundario": "#C9A44C",
+      "contenido": "#E0B23A",
       "modelo": ""
     },
     {
@@ -42,9 +102,9 @@
       "disponible": true,
       "destacado": true,
       "envase": "frasco",
-      "color": "#FFFF00",
-      "colorSecundario": "#FF0000",
-      "contenido": "#B3141C",
+      "color": "#A11D33",
+      "colorSecundario": "#C9A44C",
+      "contenido": "#8E1420",
       "modelo": ""
     },
     {
@@ -57,8 +117,8 @@
       "disponible": true,
       "destacado": true,
       "envase": "bolsa",
-      "color": "#FF0000",
-      "colorSecundario": "#FFFF00",
+      "color": "#26619C",
+      "colorSecundario": "#C9A44C",
       "contenido": "",
       "modelo": ""
     },
@@ -72,8 +132,8 @@
       "disponible": true,
       "destacado": true,
       "envase": "frasco",
-      "color": "#0000FF",
-      "colorSecundario": "#FFFFFF",
+      "color": "#F3EBDD",
+      "colorSecundario": "#A11D33",
       "contenido": "#8A4B16",
       "modelo": ""
     },
@@ -87,8 +147,8 @@
       "disponible": true,
       "destacado": true,
       "envase": "botella",
-      "color": "#FF0000",
-      "colorSecundario": "#FF0000",
+      "color": "#A11D33",
+      "colorSecundario": "#A11D33",
       "contenido": "#2B0F05",
       "modelo": ""
     },
@@ -102,8 +162,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "bolsa",
-      "color": "#FFFFFF",
-      "colorSecundario": "#0000FF",
+      "color": "#F3EBDD",
+      "colorSecundario": "#26619C",
       "contenido": "",
       "modelo": ""
     },
@@ -117,8 +177,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "caja",
-      "color": "#FFFF00",
-      "colorSecundario": "#FF0000",
+      "color": "#C9A44C",
+      "colorSecundario": "#1B3F6B",
       "contenido": "",
       "modelo": ""
     },
@@ -132,8 +192,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "bolsa",
-      "color": "#0000FF",
-      "colorSecundario": "#FFFFFF",
+      "color": "#1B3F6B",
+      "colorSecundario": "#F3EBDD",
       "contenido": "",
       "modelo": ""
     },
@@ -147,8 +207,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "bolsa",
-      "color": "#FF0000",
-      "colorSecundario": "#FFFFFF",
+      "color": "#F3EBDD",
+      "colorSecundario": "#A11D33",
       "contenido": "",
       "modelo": ""
     },
@@ -162,8 +222,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "lata",
-      "color": "#FF0000",
-      "colorSecundario": "#FFFF00",
+      "color": "#A11D33",
+      "colorSecundario": "#C9A44C",
       "contenido": "",
       "modelo": ""
     },
@@ -177,8 +237,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "lata",
-      "color": "#0000FF",
-      "colorSecundario": "#FFFF00",
+      "color": "#26619C",
+      "colorSecundario": "#C9A44C",
       "contenido": "",
       "modelo": ""
     },
@@ -192,8 +252,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "frasco",
-      "color": "#000000",
-      "colorSecundario": "#FFFF00",
+      "color": "#1F1B16",
+      "colorSecundario": "#C9A44C",
       "contenido": "#3B2314",
       "modelo": ""
     },
@@ -207,9 +267,9 @@
       "disponible": true,
       "destacado": false,
       "envase": "frasco",
-      "color": "#FFFF00",
-      "colorSecundario": "#FF0000",
-      "contenido": "#F28C00",
+      "color": "#C9A44C",
+      "colorSecundario": "#A11D33",
+      "contenido": "#E07B1A",
       "modelo": ""
     },
     {
@@ -222,8 +282,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "caja",
-      "color": "#0000FF",
-      "colorSecundario": "#FFFF00",
+      "color": "#26619C",
+      "colorSecundario": "#F3EBDD",
       "contenido": "",
       "modelo": ""
     },
@@ -237,8 +297,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "botella",
-      "color": "#0000FF",
-      "colorSecundario": "#FFFFFF",
+      "color": "#26619C",
+      "colorSecundario": "#F3EBDD",
       "contenido": "#D6ECFF",
       "modelo": ""
     },
@@ -252,8 +312,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "carton",
-      "color": "#FFFF00",
-      "colorSecundario": "#FF0000",
+      "color": "#C9A44C",
+      "colorSecundario": "#A11D33",
       "contenido": "",
       "modelo": ""
     },
@@ -267,8 +327,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "carton",
-      "color": "#FFFFFF",
-      "colorSecundario": "#0000FF",
+      "color": "#F3EBDD",
+      "colorSecundario": "#26619C",
       "contenido": "",
       "modelo": ""
     },
@@ -282,9 +342,9 @@
       "disponible": true,
       "destacado": false,
       "envase": "botella",
-      "color": "#FFFF00",
-      "colorSecundario": "#0000FF",
-      "contenido": "#F5E600",
+      "color": "#1B3F6B",
+      "colorSecundario": "#C9A44C",
+      "contenido": "#F2E6A6",
       "modelo": ""
     },
     {
@@ -297,8 +357,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "botella",
-      "color": "#FFFFFF",
-      "colorSecundario": "#FF0000",
+      "color": "#F3EBDD",
+      "colorSecundario": "#26619C",
       "contenido": "#F2F2F2",
       "modelo": ""
     },
@@ -312,8 +372,8 @@
       "disponible": true,
       "destacado": false,
       "envase": "caja",
-      "color": "#0000FF",
-      "colorSecundario": "#FF0000",
+      "color": "#A11D33",
+      "colorSecundario": "#F3EBDD",
       "contenido": "",
       "modelo": ""
     }

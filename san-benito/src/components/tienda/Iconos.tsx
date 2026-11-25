@@ -10,9 +10,9 @@ function Base({ children, ...props }: P) {
       height="1em"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2.75}
-      strokeLinecap="square"
-      strokeLinejoin="miter"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden
       focusable="false"
       {...props}
@@ -93,5 +93,11 @@ export const IconoCamara = (p: P) => (
     <rect x="3" y="3" width="18" height="18" />
     <circle cx="12" cy="12" r="4" />
     <path d="M17 7h.01" />
+  </Base>
+);
+
+export const IconoMenu = (p: P) => (
+  <Base {...p}>
+    <path d="M4 7h16M4 12h16M4 17h16" />
   </Base>
 );

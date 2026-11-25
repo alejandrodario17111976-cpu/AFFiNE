@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
 import { View } from "@react-three/drei";
 import type { Tienda } from "@/lib/tipos";
 import { descuento } from "@/lib/formato";
@@ -9,15 +9,21 @@ import EscenaPortada from "@/components/escena/EscenaPortada";
 import { scrollPortada } from "@/components/escena/compartido";
 import { IconoFlecha } from "./Iconos";
 
-export default function Portada({ tienda }: { tienda: Tienda }) {
+export default function Portada({
+  tienda,
+  irAPasillo,
+}: {
+  tienda: Tienda;
+  irAPasillo: (id: string) => void;
+}) {
   const seccion = useRef<HTMLElement>(null);
-  const { negocio, productos, categorias } = tienda;
+  const { negocio, productos, categorias, textos, secciones } = tienda;
 
   const disponibles = productos.filter((p) => p.disponible);
   const marcados = disponibles.filter((p) => p.destacado);
   const destacados = (marcados.length ? marcados : disponibles).slice(0, 6);
   const ofertas = disponibles.filter((p) => descuento(p) > 0).length;
-  const pasillos = categorias.filter((c) => productos.some((p) => p.categoria === c.id)).length;
+  const conProductos = categorias.filter((c) => productos.some((p) => p.categoria === c.id));
 
   useGSAP(
     () => {
@@ -31,12 +37,13 @@ export default function Portada({ tienda }: { tienda: Tienda }) {
       });
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from(".letra", { yPercent: 115, duration: 0.9, ease: "power4.out", stagger: 0.045 });
-        gsap.from(".banda-eslogan", { xPercent: -105, duration: 0.85, ease: "power4.out", delay: 0.3 });
-        gsap.from(".portada-cta > *", { y: 28, opacity: 0, stagger: 0.08, delay: 0.55, duration: 0.6, ease: "power3.out" });
-        const scrub = { trigger: seccion.current, start: "top top", end: "bottom top", scrub: true };
-        gsap.to(".marca-gigante", { yPercent: -30, ease: "none", scrollTrigger: scrub });
-        gsap.to(".banda-movil", { xPercent: -12, ease: "none", scrollTrigger: scrub });
+        gsap.from(".portada-entra", {
+          y: 12,
+          opacity: 0,
+          duration: 0.5,
+          ease: "power3.out",
+          stagger: 0.05,
+        });
       });
       return () => {
         st.kill();
@@ -46,80 +53,69 @@ export default function Portada({ tienda }: { tienda: Tienda }) {
     { scope: seccion },
   );
 
-  const palabras = negocio.nombre.split(" ");
-
   return (
     <section
       id="inicio"
       ref={seccion}
-      className="relative overflow-hidden bg-rojo pt-[var(--alto-encabezado)] text-negro"
+      className="grano relative flex min-h-[100svh] flex-col overflow-hidden bg-[linear-gradient(180deg,var(--color-lapis-medio)_0%,var(--color-lapis-hondo)_55%,var(--color-lapis-noche)_100%)] pt-[var(--alto-encabezado)] text-marfil"
     >
-      <h1
-        className="marca-gigante px-2 pt-5 font-display text-[clamp(3rem,16.6vw,20rem)] leading-[0.8] tracking-[-0.055em] uppercase sm:px-3"
-        aria-label={`${negocio.nombre}, ${negocio.eslogan}`}
-      >
-        {palabras.map((palabra, i) => (
-          <Fragment key={i}>
-            <span className="inline-block overflow-hidden pb-[0.04em]" aria-hidden>
-              {Array.from(palabra).map((letra, j) => (
-                <span key={j} className="letra inline-block">
-                  {letra}
-                </span>
-              ))}
-            </span>
-            {i < palabras.length - 1 && " "}
-          </Fragment>
-        ))}
-      </h1>
+      <div className="mx-auto grid w-full max-w-[1440px] flex-1 items-center gap-y-4 px-4 md:grid-cols-12 md:gap-x-8 md:px-8">
+        <div className="relative z-20 pt-12 md:col-span-5 md:pt-0">
+          <p className="portada-entra text-sm text-marfil/60 tabular-nums">
+            {productos.length} productos · {conProductos.length} {conProductos.length === 1 ? "pasillo" : "pasillos"}
+          </p>
+          <h1 className="portada-entra mt-4 font-titulo text-[clamp(3.25rem,8.4vw,8rem)] leading-[0.95] tracking-[-0.03em]">
+            {negocio.nombre}
+          </h1>
+          <p className="portada-entra mt-4 font-titulo text-[clamp(1.5rem,2.8vw,2.5rem)] leading-tight text-oro">
+            {negocio.eslogan}
+          </p>
+          {textos.portadaTexto && (
+            <p className="portada-entra mt-6 max-w-[36rem] text-lg leading-relaxed text-marfil/75">{textos.portadaTexto}</p>
+          )}
+          <div className="portada-entra mt-8 flex flex-wrap gap-3">
+            <a
+              href="#productos"
+              className="flex h-12 items-center gap-2 rounded-[10px] bg-oro px-5 font-medium text-tinta shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition-colors duration-150 ease-sb hover:bg-[color-mix(in_oklab,var(--sb-acento)_85%,white)]"
+            >
+              {textos.botonProductos} <IconoFlecha />
+            </a>
+            {secciones.ofertas && ofertas > 0 && (
+              <a
+                href="#ofertas"
+                className="flex h-12 items-center gap-3 rounded-[10px] border border-marfil/20 px-5 text-marfil transition-colors duration-150 ease-sb hover:bg-marfil/5"
+              >
+                {textos.botonOfertas}
+                <span className="text-sm text-marfil/60 tabular-nums">{ofertas}</span>
+              </a>
+            )}
+          </div>
+        </div>
 
-      <div className="banda-movil relative -mx-[4vw] mt-3 w-[112vw]" aria-hidden>
-        <p className="banda-eslogan -rotate-2 border-y-4 border-negro bg-amarillo py-[0.12em] pl-[5vw] font-display text-[clamp(2rem,8.4vw,10rem)] leading-[0.95] tracking-[-0.04em] whitespace-nowrap uppercase shadow-duro">
-          {negocio.eslogan}
-        </p>
-      </div>
-
-      <div className="relative grid md:grid-cols-12">
-        <div className="relative order-1 h-[44svh] min-h-[300px] md:order-2 md:col-span-8 md:-mt-[6vw] md:h-[70svh]">
+        <div className="relative -mx-4 h-[52svh] min-h-[320px] md:col-span-7 md:mx-0 md:h-[min(78svh,760px)]">
           <View className="absolute inset-0">
             <EscenaPortada productos={destacados} />
           </View>
         </div>
-        <div className="portada-cta relative z-20 order-2 flex flex-col justify-end gap-4 px-3 pb-8 md:order-1 md:col-span-4 md:px-4 md:pb-12">
-          <p className="self-start border-4 border-negro bg-negro px-3 py-2 font-mono text-sm font-bold text-blanco sm:text-base">
-            {productos.length} productos · {pasillos} {pasillos === 1 ? "pasillo" : "pasillos"}
-          </p>
-          <a
-            href="#productos"
-            className="flex items-center justify-between gap-4 border-4 border-negro bg-amarillo px-5 py-4 font-display text-2xl uppercase shadow-duro transition-transform duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[12px_12px_0_#000] sm:text-3xl"
-          >
-            Ver productos <IconoFlecha />
-          </a>
-          {ofertas > 0 && (
-            <a
-              href="#ofertas"
-              className="flex items-center justify-between gap-4 border-4 border-negro bg-blanco px-5 py-3 font-display text-xl uppercase shadow-duro transition-transform duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[12px_12px_0_#000]"
-            >
-              Ver ofertas
-              <span className="border-2 border-negro bg-rojo px-2 text-blanco tabular-nums">{ofertas}</span>
-            </a>
-          )}
-        </div>
       </div>
 
-      <div className="relative z-20 overflow-hidden border-y-4 border-negro bg-azul py-3 text-amarillo" aria-hidden>
-        <div className="cinta flex w-max">
-          {[0, 1].map((copia) => (
-            <div key={copia} className="flex shrink-0 items-center">
-              {[...categorias, ...categorias].map((c, i) => (
-                <span key={`${c.id}-${i}`} className="flex items-center gap-6 pr-6 font-display text-3xl uppercase md:text-5xl">
-                  {c.nombre}
-                  <span className="inline-block size-4 bg-rojo md:size-6" />
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+      {conProductos.length > 0 && (
+        <nav aria-label="Pasillos" className="relative z-20 border-t border-marfil/10">
+          <div className="mx-auto flex max-w-[1440px] items-center gap-1 overflow-x-auto px-4 py-3 md:px-8">
+            <span className="mr-3 shrink-0 text-sm text-marfil/50">Pasillos</span>
+            {conProductos.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => irAPasillo(c.id)}
+                className="shrink-0 cursor-pointer rounded-lg px-3 py-2 text-sm text-marfil/80 transition-colors duration-150 ease-sb hover:bg-marfil/5 hover:text-marfil"
+              >
+                {c.nombre}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
     </section>
   );
 }

@@ -1,18 +1,28 @@
 import type { Metadata, Viewport } from "next";
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/playfair-display";
+import "@fontsource-variable/cormorant-garamond";
+import "@fontsource-variable/newsreader";
+import "@fontsource-variable/instrument-sans";
+import "@fontsource-variable/dm-sans";
 import "./globals.css";
+import { getTienda } from "@/lib/tienda";
 
-export const metadata: Metadata = {
-  title: "San Benito — Tu mejor elección",
-  description: "Productos, precios y ofertas de San Benito. Armá tu pedido y envialo al negocio.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { negocio } = await getTienda();
+  return {
+    title: `${negocio.nombre} — ${negocio.eslogan}`,
+    description: `Productos, precios y ofertas de ${negocio.nombre}. Armá tu pedido y envialo al negocio.`,
+  };
+}
 
 export const viewport: Viewport = {
-  themeColor: "#FF0000",
+  themeColor: "#0f2238",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className="antialiased">
+    <html lang="es">
       <body>{children}</body>
     </html>
   );

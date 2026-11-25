@@ -1,6 +1,8 @@
-# SAN BENITO — Tu mejor elección
+# San Benito — Tu mejor elección
 
-Sitio web de la tienda San Benito: portada con productos en 3D, góndola con buscador y filtros por pasillo, recorrido por pasillos, ofertas y un ticket de caja que arma el pedido para enviarlo por WhatsApp.
+Sitio web de la tienda San Benito: portada con productos en 3D sobre un mostrador giratorio, góndola con buscador y filtros por pasillo, recorrido por pasillos, ofertas y un ticket de caja que arma el pedido para enviarlo por WhatsApp.
+
+Colores de la marca: azul lapislázuli, dorado y carmesí sobre marfil. Tipografías: Fraunces para títulos e Instrument Sans para el texto.
 
 Hecho con Next.js, Tailwind CSS, React Three Fiber, GSAP ScrollTrigger y Framer Motion.
 
@@ -14,13 +16,23 @@ npm install
 npm run dev
 ```
 
-Abrí http://localhost:3000 para ver la tienda y http://localhost:3000/admin para editar los precios.
+Abrí http://localhost:3000 para ver la tienda y http://localhost:3000/admin para editar el sitio.
 En tu computadora el panel no pide contraseña.
+
+## Qué se puede editar desde el panel
+
+Todo el contenido del sitio se edita en `/admin` (enlace "Administrar el sitio" al pie):
+
+- **Productos y precios:** nombre, presentación, pasillo, precio, oferta, stock, si sale en la portada, tipo de envase 3D y colores.
+- **Pasillos:** nombre y color de cada uno, agregar o quitar.
+- **Textos y secciones:** todos los títulos, textos y botones, los pasos de "Cómo comprar" y qué secciones se muestran.
+- **Colores y fuentes:** los cuatro colores de la marca y la tipografía de títulos y de texto, con una muestra en vivo.
+- **Datos del negocio:** nombre, eslogan, WhatsApp, dirección, horarios, Instagram y moneda.
 
 ## Cómo actualizar los precios
 
-1. Entrá a `/admin` (también está el enlace "Administrar precios" al pie del sitio).
-2. Cambiá el precio en el casillero amarillo de cada producto.
+1. Entrá a `/admin`.
+2. Cambiá el precio en el casillero dorado de cada producto.
 3. Tocá **Guardar cambios**. El sitio muestra los precios nuevos al instante.
 
 En el panel también podés:
@@ -37,6 +49,14 @@ Todo se guarda en `data/tienda.json`. Los precios que vienen cargados son de eje
 Cada producto se dibuja en 3D a partir de su nombre, su presentación y sus colores, eligiendo un tipo de envase: frasco de vidrio, botella, lata, caja, cartón o bolsa. Si cambiás el nombre o los colores en el panel, el 3D se actualiza solo.
 
 Si tenés un modelo 3D propio en formato `.glb`, copialo a `public/modelos/` y escribí su ruta en "Modelo 3D propio" (por ejemplo `/modelos/yerba.glb`). Si el archivo no carga, se muestra el envase dibujado.
+
+## Vista previa sin servidor
+
+```bash
+npm run vista-previa
+```
+
+Genera en `vista-previa/dist/` una versión estática del sitio con los datos de `data/tienda.json`, sin el panel de administración. Sirve para mostrar cómo queda antes de publicarlo.
 
 ## Publicar el sitio
 

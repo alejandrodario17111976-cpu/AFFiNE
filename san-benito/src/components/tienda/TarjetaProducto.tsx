@@ -10,11 +10,7 @@ import type { Interaccion } from "@/components/escena/compartido";
 import { useCarrito } from "./carrito";
 import { IconoMas, IconoMenos } from "./Iconos";
 
-const RIEL: Record<Categoria["color"], string> = {
-  rojo: "bg-rojo",
-  amarillo: "bg-amarillo",
-  azul: "bg-azul",
-};
+const CURVA = [0.22, 1, 0.36, 1] as const;
 
 /** Vista 3D de un producto que sigue a su contenedor en la página. */
 export function Vista3D({ producto, className = "" }: { producto: Producto; className?: string }) {
@@ -36,7 +32,7 @@ export function Vista3D({ producto, className = "" }: { producto: Producto; clas
       }}
     >
       <View className="absolute inset-0">
-        <PerspectiveCamera makeDefault position={[0, 0.25, 5.6]} fov={34} />
+        <PerspectiveCamera makeDefault position={[0, 0.35, 5.8]} fov={34} />
         <LucesTienda />
         <Producto3D producto={producto} interaccion={interaccion} />
         <SombraSuelo y={-1.25} />
@@ -45,110 +41,110 @@ export function Vista3D({ producto, className = "" }: { producto: Producto; clas
   );
 }
 
+/** Etiqueta de precio con doble filete dorado. */
+export function EtiquetaPrecio({ producto, grande = false }: { producto: Producto; grande?: boolean }) {
+  const { precio } = useCarrito();
+  const off = descuento(producto);
+  return (
+    <div className="etiqueta-precio inline-flex flex-col rounded-md px-3 pt-1.5 pb-2">
+      {producto.precioAnterior && off > 0 && (
+        <span className="text-xs text-tinta-3 tabular-nums line-through decoration-carmesi">
+          {precio(producto.precioAnterior)}
+        </span>
+      )}
+      <span
+        className={`font-titulo leading-none tracking-[-0.01em] text-tinta tabular-nums ${grande ? "text-4xl" : "text-[28px]"}`}
+      >
+        {precio(producto.precio)}
+      </span>
+    </div>
+  );
+}
+
 export default function TarjetaProducto({ producto, categoria }: { producto: Producto; categoria?: Categoria }) {
-  const { agregar, quitar, cantidadDe, precio } = useCarrito();
+  const { agregar, quitar, cantidadDe } = useCarrito();
   const cantidad = cantidadDe(producto.id);
   const off = descuento(producto);
 
   return (
-    <article
-      className={`group relative flex h-full flex-col border-4 border-negro bg-blanco shadow-duro transition-transform duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[12px_12px_0_#000] ${
-        producto.disponible ? "" : "opacity-75"
-      }`}
-    >
-      <div className="relative aspect-[4/5] overflow-hidden border-b-4 border-negro">
+    <article className="group relative flex h-full flex-col rounded-2xl border border-tinta/8 bg-papel p-2 shadow-suave transition-[transform,box-shadow] duration-300 ease-sb hover:-translate-y-0.5 hover:shadow-flotante">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[linear-gradient(180deg,var(--color-marfil),var(--color-crema))]">
         <Vista3D producto={producto} className="h-full w-full" />
-        {off > 0 && (
-          <span className="absolute top-3 left-3 z-20 -rotate-6 border-4 border-negro bg-rojo px-2 py-1 font-display text-2xl leading-none text-blanco shadow-duro-sm">
-            -{off}%
-          </span>
-        )}
+        <div className="absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
+          {categoria ? <span className="text-xs text-tinta-3">{categoria.nombre}</span> : <span />}
+          {off > 0 && (
+            <span className="rounded-md bg-carmesi px-2 py-1 text-xs font-medium text-marfil tabular-nums">−{off}%</span>
+          )}
+        </div>
         {!producto.disponible && (
-          <span className="absolute inset-x-0 top-1/2 z-20 -translate-y-1/2 -rotate-6 border-y-4 border-negro bg-amarillo py-2 text-center font-display text-3xl text-negro">
+          <span className="absolute inset-x-3 bottom-3 z-20 rounded-lg bg-tinta/80 py-2 text-center text-sm text-marfil">
             Sin stock
-          </span>
-        )}
-        {categoria && (
-          <span className="absolute top-3 right-3 z-20 border-2 border-negro bg-blanco px-1.5 py-0.5 font-mono text-xs font-bold uppercase">
-            {categoria.nombre}
           </span>
         )}
       </div>
 
-      {/* Riel de góndola con la etiqueta de precio enganchada */}
-      <div className={`relative z-20 h-4 border-b-4 border-negro ${RIEL[categoria?.color ?? "azul"]}`} />
-
-      <div className="relative z-20 flex flex-1 flex-col gap-3 p-3 sm:p-4">
-        <div className="-mt-8 self-start border-4 border-negro bg-amarillo px-3 pt-1 pb-1.5 shadow-duro-sm">
-          {producto.precioAnterior && off > 0 && (
-            <span className="block font-mono text-xs font-bold text-negro line-through decoration-rojo decoration-2">
-              Antes {precio(producto.precioAnterior)}
-            </span>
-          )}
-          <span className="block font-display text-3xl leading-none tracking-tight text-negro tabular-nums sm:text-4xl">
-            {precio(producto.precio)}
-          </span>
-        </div>
-
+      <div className="relative z-20 flex flex-1 flex-col gap-4 px-2 pt-4 pb-2">
         <div className="flex-1">
-          <h3 className="font-display text-xl leading-[0.95] tracking-tight uppercase sm:text-2xl">{producto.nombre}</h3>
-          {producto.presentacion && <p className="mt-1 font-mono text-sm font-bold">{producto.presentacion}</p>}
+          <h3 className="text-base leading-snug font-medium text-tinta">{producto.nombre}</h3>
+          {producto.presentacion && <p className="mt-0.5 text-sm text-tinta-3">{producto.presentacion}</p>}
         </div>
 
-        {producto.disponible && (
-          <div className="flex h-12 items-stretch">
-            <AnimatePresence initial={false} mode="popLayout">
-              {cantidad === 0 ? (
-                <motion.button
-                  key="agregar"
-                  type="button"
-                  onClick={() => agregar(producto.id)}
-                  initial={{ y: 12, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -12, opacity: 0 }}
-                  whileTap={{ scale: 0.94 }}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 border-4 border-negro bg-negro font-display text-lg text-amarillo uppercase hover:bg-azul hover:text-blanco"
-                >
-                  <IconoMas className="text-xl" /> Agregar
-                </motion.button>
-              ) : (
-                <motion.div
-                  key="cantidad"
-                  initial={{ y: 12, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -12, opacity: 0 }}
-                  className="flex w-full items-stretch border-4 border-negro"
-                >
-                  <button
-                    type="button"
-                    onClick={() => quitar(producto.id)}
-                    aria-label={`Quitar una unidad de ${producto.nombre}`}
-                    className="flex w-12 cursor-pointer items-center justify-center bg-blanco text-xl hover:bg-rojo hover:text-blanco"
-                  >
-                    <IconoMenos />
-                  </button>
-                  <motion.span
-                    key={cantidad}
-                    initial={{ scale: 1.5 }}
-                    animate={{ scale: 1 }}
-                    className="flex flex-1 items-center justify-center border-x-4 border-negro bg-amarillo font-display text-xl tabular-nums"
-                    aria-live="polite"
-                  >
-                    {cantidad}
-                  </motion.span>
-                  <button
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <EtiquetaPrecio producto={producto} />
+          {producto.disponible && (
+            <div className="flex h-11 min-w-[7.5rem] flex-1 items-stretch sm:flex-none">
+              <AnimatePresence initial={false} mode="popLayout">
+                {cantidad === 0 ? (
+                  <motion.button
+                    key="agregar"
                     type="button"
                     onClick={() => agregar(producto.id)}
-                    aria-label={`Agregar una unidad de ${producto.nombre}`}
-                    className="flex w-12 cursor-pointer items-center justify-center bg-blanco text-xl hover:bg-azul hover:text-blanco"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: CURVA }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[10px] bg-lapis-hondo px-4 text-sm font-medium text-marfil transition-colors duration-150 ease-sb hover:bg-lapis-medio"
                   >
-                    <IconoMas />
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+                    <IconoMas className="text-base" /> Agregar
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="cantidad"
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: CURVA }}
+                    className="flex w-full items-stretch overflow-hidden rounded-[10px] border border-tinta/12 bg-papel"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => quitar(producto.id)}
+                      aria-label={`Quitar una unidad de ${producto.nombre}`}
+                      className="flex w-10 cursor-pointer items-center justify-center text-tinta-2 transition-colors duration-150 hover:bg-crema"
+                    >
+                      <IconoMenos />
+                    </button>
+                    <span
+                      className="flex flex-1 items-center justify-center text-sm font-medium tabular-nums"
+                      aria-live="polite"
+                    >
+                      {cantidad}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => agregar(producto.id)}
+                      aria-label={`Agregar una unidad de ${producto.nombre}`}
+                      className="flex w-10 cursor-pointer items-center justify-center text-tinta-2 transition-colors duration-150 hover:bg-crema"
+                    >
+                      <IconoMas />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

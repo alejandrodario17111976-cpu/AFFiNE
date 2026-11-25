@@ -1,34 +1,49 @@
 @import "tailwindcss";
 
 /*
- * Dirección: brutalismo de volante de supermercado.
- * Primarios puros que compiten de igual a igual, tipografías del sistema,
- * bordes gruesos y sombras duras sin desenfoque.
+ * San Benito — almacén de ramos generales con oficio.
+ * Lapislázuli como color de marca, dorado como acento escaso, carmesí solo para ofertas,
+ * sobre una rampa cálida de marfil. Los valores --sb-* se completan con lo que se elige
+ * en el panel (Apariencia), así que todo el sitio cambia desde ahí.
  */
-@theme {
-  --color-rojo: #ff0000;
-  --color-amarillo: #ffff00;
-  --color-azul: #0000ff;
-  --color-negro: #000000;
-  --color-blanco: #ffffff;
-
-  --font-display: "Arial Black", "Arial Bold", Gadget, "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "Courier New", Courier, monospace;
-  --font-serif: "Times New Roman", Times, serif;
-
-  --shadow-duro: 8px 8px 0 #000;
-  --shadow-duro-sm: 4px 4px 0 #000;
-}
-
 :root {
-  --alto-encabezado: 104px; /* encabezado + fila de secciones en celulares */
+  --sb-principal: #26619c;
+  --sb-acento: #c9a44c;
+  --sb-destacado: #a11d33;
+  --sb-fondo: #f7f3ea;
+  --sb-fuente-titulos: "Fraunces Variable", Georgia, serif;
+  --sb-fuente-texto: "Instrument Sans Variable", "Helvetica Neue", Arial, sans-serif;
+  --alto-encabezado: 64px;
+  --curva: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (min-width: 768px) {
-  :root {
-    --alto-encabezado: 64px;
-  }
+@theme inline {
+  /* Marca */
+  --color-lapis: var(--sb-principal);
+  --color-lapis-medio: color-mix(in oklab, var(--sb-principal) 62%, #050811);
+  --color-lapis-hondo: color-mix(in oklab, var(--sb-principal) 40%, #050811);
+  --color-lapis-noche: color-mix(in oklab, var(--sb-principal) 26%, #04060c);
+  --color-oro: var(--sb-acento);
+  --color-oro-tinta: color-mix(in oklab, var(--sb-acento) 58%, #2a2114);
+  --color-oro-claro: color-mix(in oklab, var(--sb-acento) 28%, var(--sb-fondo));
+  --color-carmesi: var(--sb-destacado);
+  --color-carmesi-hondo: color-mix(in oklab, var(--sb-destacado) 62%, #0b0306);
+
+  /* Rampa cálida */
+  --color-marfil: var(--sb-fondo);
+  --color-papel: color-mix(in oklab, var(--sb-fondo) 35%, #ffffff);
+  --color-crema: color-mix(in oklab, var(--sb-fondo) 90%, #8a7550);
+  --color-tinta: #1f1b16;
+  --color-tinta-2: #5e554a;
+  --color-tinta-3: #776e62;
+
+  --font-titulo: var(--sb-fuente-titulos);
+  --font-texto: var(--sb-fuente-texto);
+  --font-sans: var(--sb-fuente-texto);
+
+  --ease-sb: var(--curva);
+  --shadow-suave: 0 1px 2px rgba(31, 27, 22, 0.06);
+  --shadow-flotante: 0 12px 32px -8px rgba(31, 27, 22, 0.18);
 }
 
 html {
@@ -36,14 +51,17 @@ html {
 }
 
 body {
-  background: #ffffff;
-  color: #000000;
-  font-family: var(--font-sans);
+  background: var(--sb-fondo);
+  color: #1f1b16;
+  font-family: var(--sb-fuente-texto);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-.font-display {
-  font-weight: 900;
+.font-titulo {
+  font-family: var(--sb-fuente-titulos);
+  font-optical-sizing: auto;
+  font-weight: 420;
 }
 
 section[id],
@@ -52,42 +70,55 @@ footer[id] {
 }
 
 ::selection {
-  background: #ffff00;
-  color: #000000;
+  background: color-mix(in oklab, var(--sb-acento) 45%, white);
+  color: #1f1b16;
 }
 
 :focus-visible {
-  outline: 4px solid #0000ff;
-  outline-offset: 2px;
+  outline: 2px solid var(--sb-acento);
+  outline-offset: 3px;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
   display: none;
 }
 
+/* Grano fino sobre el lapislázuli: le da materia al fondo sin agregar color */
+.grano {
+  position: relative;
+  isolation: isolate;
+}
+.grano::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.6 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+
+/* Etiqueta de precio: marfil con doble filete dorado (el detalle propio de la marca) */
+.etiqueta-precio {
+  background: var(--color-papel);
+  border: 1px solid var(--sb-acento);
+  box-shadow:
+    inset 0 0 0 3px var(--color-papel),
+    inset 0 0 0 4px color-mix(in oklab, var(--sb-acento) 55%, transparent);
+}
+
 /* Borde inferior dentado del ticket de caja */
 .borde-ticket {
-  --diente: 12px;
+  --diente: 8px;
   mask:
     conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--diente)) 100%;
 }
 
-/* Cinta de categorías que corre en la portada */
-@keyframes cinta {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.cinta {
-  animation: cinta 36s linear infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .cinta {
-    animation: none;
-  }
-  html {
-    scroll-behavior: auto;
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

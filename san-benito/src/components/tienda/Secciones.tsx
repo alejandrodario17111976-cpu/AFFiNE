@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import type { Tienda } from "@/lib/tipos";
-import { descuento } from "@/lib/formato";
+import { descuento, numeroPasillo } from "@/lib/formato";
 import TarjetaProducto from "./TarjetaProducto";
 import { IconoCamara, IconoMensaje, IconoReloj, IconoUbicacion } from "./Iconos";
 
 export function Ofertas({ tienda }: { tienda: Tienda }) {
+  const { textos } = tienda;
   const porCategoria = new Map(tienda.categorias.map((c) => [c.id, c]));
   const ofertas = tienda.productos
     .filter((p) => p.disponible && descuento(p) > 0)
@@ -14,59 +15,60 @@ export function Ofertas({ tienda }: { tienda: Tienda }) {
   if (ofertas.length === 0) return null;
 
   return (
-    <section id="ofertas" className="relative border-t-4 border-negro bg-amarillo">
-      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 px-3 pt-10 pb-8 md:px-6 md:pt-16">
-        <h2 className="titulo-seccion font-display text-[clamp(3.25rem,13vw,12rem)] leading-[0.8] tracking-[-0.05em] text-rojo uppercase [text-shadow:6px_6px_0_#000]">
-          Ofertas
-        </h2>
-        <p className="font-mono text-base font-bold">
-          {ofertas.length} {ofertas.length === 1 ? "producto rebajado" : "productos rebajados"}
-        </p>
+    <section id="ofertas" className="relative border-t border-tinta/8 bg-papel">
+      <div className="mx-auto max-w-[1440px] px-4 py-24 md:px-8 md:py-32">
+        <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
+          <div>
+            <h2 className="titulo-seccion font-titulo text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1.02] tracking-[-0.03em] text-tinta">
+              {textos.ofertasTitulo}
+            </h2>
+            {textos.ofertasTexto && (
+              <p className="mt-3 max-w-[36rem] text-lg leading-relaxed text-tinta-2">{textos.ofertasTexto}</p>
+            )}
+          </div>
+          <p className="flex items-center gap-2 text-sm text-tinta-3 tabular-nums">
+            <span className="size-2 rounded-full bg-carmesi" aria-hidden />
+            {ofertas.length} {ofertas.length === 1 ? "producto rebajado" : "productos rebajados"}
+          </p>
+        </div>
+        <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
+          {ofertas.map((p) => (
+            <li key={p.id}>
+              <TarjetaProducto producto={p} categoria={porCategoria.get(p.categoria)} />
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="grid grid-cols-2 gap-x-3 gap-y-6 px-3 pb-12 md:grid-cols-3 md:gap-6 md:px-6 md:pb-20 lg:grid-cols-4">
-        {ofertas.map((p) => (
-          <li key={p.id}>
-            <TarjetaProducto producto={p} categoria={porCategoria.get(p.categoria)} />
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
 
 export function ComoComprar({ tienda }: { tienda: Tienda }) {
-  const conWhatsapp = Boolean(tienda.negocio.whatsapp);
-  const pasos = [
-    { titulo: "Elegí tus productos", texto: "Sumalos al ticket con el botón Agregar." },
-    { titulo: "Revisá tu ticket", texto: "Ajustá las cantidades y mirá el total antes de enviarlo." },
-    conWhatsapp
-      ? { titulo: "Envialo por WhatsApp", texto: "El pedido llega armado al negocio para que lo confirmen." }
-      : { titulo: "Copiá tu pedido", texto: "Pegalo en el chat con el negocio para que lo confirmen." },
-  ];
+  const { textos } = tienda;
+  if (textos.pasos.length === 0) return null;
 
   return (
-    <section id="como-comprar" className="relative border-t-4 border-negro bg-azul text-blanco">
-      <h2 className="titulo-seccion px-3 pt-10 pb-8 font-display text-[clamp(3rem,11vw,10rem)] leading-[0.8] tracking-[-0.05em] text-amarillo uppercase md:px-6 md:pt-16">
-        Cómo comprar
-      </h2>
-      <ol className="grid border-t-4 border-negro md:grid-cols-3">
-        {pasos.map((p, i) => (
-          <li
-            key={p.titulo}
-            className="flex flex-col gap-4 border-b-4 border-negro px-4 py-8 md:border-r-4 md:border-b-0 md:px-6 md:py-12 md:last:border-r-0"
-          >
-            <span className="font-display text-[clamp(5rem,12vw,11rem)] leading-[0.8] text-amarillo tabular-nums">{i + 1}</span>
-            <h3 className="font-display text-2xl uppercase md:text-3xl">{p.titulo}</h3>
-            <p className="max-w-sm font-mono text-lg">{p.texto}</p>
-          </li>
-        ))}
-      </ol>
+    <section id="como-comprar" className="grano relative bg-lapis-hondo text-marfil">
+      <div className="mx-auto max-w-[1440px] px-4 py-24 md:px-8 md:py-32">
+        <h2 className="titulo-seccion font-titulo text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1.02] tracking-[-0.03em]">
+          {textos.comoComprarTitulo}
+        </h2>
+        <ol className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-marfil/10 bg-marfil/10 md:grid-flow-col md:auto-cols-fr">
+          {textos.pasos.map((p, i) => (
+            <li key={i} className="flex flex-col gap-3 bg-lapis-hondo p-6 md:p-8">
+              <span className="font-titulo text-5xl leading-none text-oro tabular-nums">{numeroPasillo(i)}</span>
+              <h3 className="mt-4 text-xl font-medium">{p.titulo}</h3>
+              {p.texto && <p className="max-w-sm leading-relaxed text-marfil/70">{p.texto}</p>}
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
   );
 }
 
-export function Pie({ tienda }: { tienda: Tienda }) {
-  const { negocio } = tienda;
+export function Pie({ tienda, vistaPrevia = false }: { tienda: Tienda; vistaPrevia?: boolean }) {
+  const { negocio, textos } = tienda;
   const contacto = [
     negocio.direccion && { icono: IconoUbicacion, titulo: "Dirección", texto: negocio.direccion },
     negocio.horarios && { icono: IconoReloj, titulo: "Horarios", texto: negocio.horarios },
@@ -85,43 +87,51 @@ export function Pie({ tienda }: { tienda: Tienda }) {
   ].filter(Boolean) as { icono: typeof IconoReloj; titulo: string; texto: string; href?: string }[];
 
   return (
-    <footer id="contacto" className="relative border-t-4 border-negro bg-negro text-blanco">
-      <div className="px-3 pt-12 md:px-6 md:pt-20">
-        <p className="font-display text-[clamp(3rem,16.4vw,20rem)] leading-[0.8] tracking-[-0.055em] text-amarillo uppercase">
-          {negocio.nombre}
-        </p>
-        <p className="mt-3 inline-block -rotate-1 border-4 border-blanco bg-rojo px-3 py-1 font-display text-[clamp(1.5rem,4vw,3.5rem)] leading-none text-negro uppercase">
-          {negocio.eslogan}
-        </p>
+    <footer id="contacto" className="grano relative bg-lapis-noche text-marfil">
+      <div className="mx-auto max-w-[1440px] px-4 pt-24 md:px-8 md:pt-32">
+        <div className="grid gap-12 md:grid-cols-12">
+          <div className="md:col-span-6">
+            <p className="font-titulo text-[clamp(3rem,7vw,6.5rem)] leading-[0.95] tracking-[-0.03em]">{negocio.nombre}</p>
+            <p className="mt-3 font-titulo text-[clamp(1.5rem,2.6vw,2.25rem)] text-oro">{negocio.eslogan}</p>
+            {textos.pieTexto && <p className="mt-6 max-w-md leading-relaxed text-marfil/70">{textos.pieTexto}</p>}
+          </div>
+          {contacto.length > 0 && (
+            <ul className="grid gap-6 sm:grid-cols-2 md:col-span-6 md:self-end">
+              {contacto.map(({ icono: Icono, titulo, texto, href }) => (
+                <li key={titulo} className="flex gap-3">
+                  <Icono className="mt-0.5 shrink-0 text-lg text-oro" />
+                  <div>
+                    <h3 className="text-sm text-marfil/50">{titulo}</h3>
+                    {href ? (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base underline decoration-marfil/30 underline-offset-4 hover:decoration-oro"
+                      >
+                        {texto}
+                      </a>
+                    ) : (
+                      <p className="text-base">{texto}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-
-      {contacto.length > 0 && (
-        <ul className="mt-12 grid border-t-4 border-blanco sm:grid-cols-2 lg:grid-cols-4">
-          {contacto.map(({ icono: Icono, titulo, texto, href }) => (
-            <li key={titulo} className="flex gap-3 border-b-4 border-blanco p-4 sm:border-r-4 md:p-6">
-              <Icono className="mt-1 shrink-0 text-2xl text-amarillo" />
-              <div>
-                <h3 className="font-display text-sm text-amarillo uppercase">{titulo}</h3>
-                {href ? (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="font-mono text-lg font-bold underline">
-                    {texto}
-                  </a>
-                ) : (
-                  <p className="font-mono text-lg font-bold">{texto}</p>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t-4 border-blanco px-3 py-5 font-mono text-sm md:px-6">
+      <div className="mx-auto mt-20 flex max-w-[1440px] flex-wrap items-center justify-between gap-3 border-t border-marfil/10 px-4 py-6 text-sm text-marfil/50 md:px-8">
         <span>
           © {negocio.nombre} · {negocio.eslogan}
         </span>
-        <Link href="/admin" className="underline">
-          Administrar precios
-        </Link>
+        {vistaPrevia ? (
+          <span>Vista previa · los precios son de ejemplo</span>
+        ) : (
+          <Link href="/admin" className="hover:text-marfil">
+            Administrar el sitio
+          </Link>
+        )}
       </div>
     </footer>
   );

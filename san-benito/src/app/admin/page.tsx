@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTienda } from "@/lib/tienda";
 import EditorAdmin, { type ModoAcceso } from "@/components/admin/EditorAdmin";
+import { guardarTienda, verificarClave } from "./acciones";
 
 export const metadata: Metadata = {
-  title: "Administrar precios — San Benito",
+  title: "Administrar el sitio",
   robots: { index: false, follow: false },
 };
 
@@ -18,13 +19,13 @@ async function Panel() {
     : process.env.NODE_ENV === "production"
       ? "sin-configurar"
       : "libre";
-  return <EditorAdmin inicial={tienda} modo={modo} />;
+  return <EditorAdmin inicial={tienda} modo={modo} acciones={{ guardarTienda, verificarClave }} />;
 }
 
 export default function Admin() {
   return (
     <Suspense
-      fallback={<main className="flex min-h-svh items-center justify-center bg-rojo font-display text-3xl uppercase">Cargando…</main>}
+      fallback={<main className="flex min-h-svh items-center justify-center bg-lapis-hondo font-titulo text-3xl text-marfil">Cargando…</main>}
     >
       <Panel />
     </Suspense>

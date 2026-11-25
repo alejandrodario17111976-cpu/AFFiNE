@@ -5,10 +5,10 @@ import { useFrame } from "@react-three/fiber";
 import { Float, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import type { Producto } from "@/lib/tipos";
-import { LucesTienda, Producto3D, SombraSuelo } from "./Producto3D";
+import { LucesTienda, Pedestal, Producto3D, SombraSuelo } from "./Producto3D";
+import { mezclar, useMarca } from "@/lib/marca";
 import { movimientoReducido, puntero, scrollPortada } from "./compartido";
 
-const COLORES_GRANOS = ["#FF0000", "#FFFF00", "#0000FF", "#FFFFFF"];
 
 /** Números pseudoaleatorios con semilla: la lluvia de granos sale igual en cada carga. */
 function crearAzar(semilla: number) {
@@ -22,21 +22,23 @@ function crearAzar(semilla: number) {
   };
 }
 
-/** Granos y papelitos de colores flotando alrededor de los productos. */
-function Granos({ cantidad = 90 }: { cantidad?: number }) {
+/** Polvo dorado que sube despacio alrededor del mostrador. */
+function Granos({ cantidad = 70 }: { cantidad?: number }) {
+  const marca = useMarca();
   const malla = useRef<THREE.InstancedMesh>(null);
   const datos = useMemo(() => {
     const azar = crearAzar(20251125);
+    const colores = [marca.oro, mezclar(marca.oro, "#FFFFFF", 0.45), mezclar(marca.oro, "#000000", 0.25), marca.fondo];
     return Array.from({ length: cantidad }, (_, i) => ({
       x: (azar() - 0.5) * 11,
       y: (azar() - 0.5) * 6,
       z: (azar() - 0.5) * 6,
       vel: 0.15 + azar() * 0.35,
       giro: azar() * Math.PI * 2,
-      escala: 0.05 + azar() * 0.09,
-      color: COLORES_GRANOS[i % COLORES_GRANOS.length],
+      escala: 0.025 + azar() * 0.05,
+      color: colores[i % colores.length],
     }));
-  }, [cantidad]);
+  }, [cantidad, marca]);
   const aux = useMemo(() => new THREE.Object3D(), []);
   const colorAux = useMemo(() => new THREE.Color(), []);
   const listo = useRef(false);
@@ -66,7 +68,7 @@ function Granos({ cantidad = 90 }: { cantidad?: number }) {
   return (
     <instancedMesh ref={malla} args={[undefined, undefined, cantidad]}>
       <icosahedronGeometry args={[1, 0]} />
-      <meshStandardMaterial roughness={0.35} metalness={0.1} />
+      <meshStandardMaterial roughness={0.25} metalness={0.85} />
     </instancedMesh>
   );
 }
@@ -85,16 +87,16 @@ export default function EscenaPortada({ productos }: { productos: Producto[] }) 
     const avance = scrollPortada.valor;
     if (!quieto) c.rotation.y += delta * 0.18;
     // Que entre todo en pantallas angostas
-    const escala = THREE.MathUtils.clamp(state.viewport.width / 6.6, 0.7, 1);
+    const escala = THREE.MathUtils.clamp(state.viewport.width / 11.5, 0.45, 0.85);
     r.scale.setScalar(THREE.MathUtils.damp(r.scale.x, escala * (1 - avance * 0.25), 5, delta));
     r.rotation.x = THREE.MathUtils.damp(r.rotation.x, -puntero.y * 0.12 + avance * 0.5, 4, delta);
     r.rotation.z = THREE.MathUtils.damp(r.rotation.z, -puntero.x * 0.06, 4, delta);
-    r.position.y = THREE.MathUtils.damp(r.position.y, 0.55 + avance * 1.6, 5, delta);
+    r.position.y = THREE.MathUtils.damp(r.position.y, 0.2 + avance * 1.4, 5, delta);
   });
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, 1.4, 10.5]} fov={34} onUpdate={(c) => c.lookAt(0, -0.2, 0)} />
+      <PerspectiveCamera makeDefault position={[0, 2.8, 11]} fov={34} onUpdate={(c) => c.lookAt(0, -0.5, 0)} />
       <LucesTienda dinamica />
       <group ref={raiz}>
         <group ref={carrusel}>
@@ -105,11 +107,12 @@ export default function EscenaPortada({ productos }: { productos: Producto[] }) 
                 <Float speed={1.6} rotationIntensity={0.35} floatIntensity={0.7} floatingRange={[-0.12, 0.12]}>
                   <Producto3D producto={p} calidad={i === 0 ? "alta" : "normal"} velocidad={0.5} />
                 </Float>
-                <SombraSuelo y={-1.45} ancho={2.6} />
+                <SombraSuelo y={-1.2} ancho={2.4} />
               </group>
             );
           })}
         </group>
+        <Pedestal radio={radio + 0.95} />
         <Granos />
       </group>
     </>

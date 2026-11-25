@@ -1,20 +1,43 @@
 "use client";
 
 import { useRef } from "react";
-import type { Tienda } from "@/lib/tipos";
-import { numeroPasillo, textoSobre } from "@/lib/formato";
-import { PALETA } from "@/lib/tipos";
+import type { ColorCategoria, Tienda } from "@/lib/tipos";
+import { numeroPasillo } from "@/lib/formato";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { Vista3D } from "./TarjetaProducto";
 import { useCarrito } from "./carrito";
 import { IconoFlecha } from "./Iconos";
 
-const FONDO = { rojo: "bg-rojo", amarillo: "bg-amarillo", azul: "bg-azul" } as const;
+/** Cada color de pasillo es una superficie de la marca con su texto y su escenario para el producto. */
+const ESTILO: Record<ColorCategoria, { fondo: string; texto: string; suave: string; escenario: string; boton: string }> = {
+  principal: {
+    fondo: "bg-lapis-hondo grano",
+    texto: "text-marfil",
+    suave: "text-marfil/70",
+    escenario: "bg-lapis-medio/60",
+    boton: "bg-oro text-tinta hover:bg-[color-mix(in_oklab,var(--sb-acento)_85%,white)]",
+  },
+  destacado: {
+    fondo: "bg-carmesi-hondo grano",
+    texto: "text-marfil",
+    suave: "text-marfil/70",
+    escenario: "bg-carmesi/40",
+    boton: "bg-marfil text-tinta hover:bg-papel",
+  },
+  acento: {
+    fondo: "bg-oro-claro",
+    texto: "text-tinta",
+    suave: "text-tinta-2",
+    escenario: "bg-papel/60",
+    boton: "bg-lapis-hondo text-marfil hover:bg-lapis-medio",
+  },
+};
 
 export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPasillo: (id: string) => void }) {
   const seccion = useRef<HTMLElement>(null);
   const pista = useRef<HTMLDivElement>(null);
   const { precio } = useCarrito();
+  const { textos } = tienda;
 
   const pasillos = tienda.categorias
     .map((c) => {
@@ -52,59 +75,47 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
   );
 
   return (
-    <section id="pasillos" ref={seccion} className="relative overflow-hidden border-t-4 border-negro bg-negro">
+    <section id="pasillos" ref={seccion} className="relative overflow-hidden bg-marfil">
       <div ref={pista} className="flex flex-col md:h-[100svh] md:w-max md:flex-row">
-        <div className="flex flex-col justify-end gap-4 border-b-4 border-negro bg-negro px-4 pt-[calc(var(--alto-encabezado)+2rem)] pb-10 text-blanco md:w-[46vw] md:border-r-4 md:border-b-0 md:px-8 md:pb-16">
-          <h2 className="font-display text-[clamp(3.25rem,10vw,10rem)] leading-[0.8] tracking-[-0.05em] text-amarillo uppercase">
-            Pasillos
+        <div className="flex flex-col justify-center gap-4 px-4 py-20 md:w-[40vw] md:px-12 md:pt-[calc(var(--alto-encabezado)+2rem)]">
+          <h2 className="font-titulo text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1.02] tracking-[-0.03em] text-tinta">
+            {textos.pasillosTitulo}
           </h2>
-          <p className="max-w-md font-mono text-lg font-bold">
-            Recorré el negocio por pasillo y entrá directo a lo que buscás.
-          </p>
+          {textos.pasillosTexto && <p className="max-w-sm text-lg leading-relaxed text-tinta-2">{textos.pasillosTexto}</p>}
+          <p className="text-sm text-tinta-3 tabular-nums">{pasillos.length} pasillos</p>
         </div>
 
         {pasillos.map(({ categoria, cantidad, desde, muestra }, i) => {
-          const tinta = textoSobre(PALETA[categoria.color]);
-          const palabraMasLarga = Math.max(...categoria.nombre.split(/\s+/).map((w) => w.length), 4);
+          const e = ESTILO[categoria.color];
           return (
             <article
               key={categoria.id}
-              className={`relative grid border-b-4 border-negro md:h-full md:w-[78vw] md:grid-cols-2 md:border-r-4 md:border-b-0 lg:w-[66vw] ${FONDO[categoria.color]}`}
-              style={{ color: tinta }}
+              className={`relative grid md:h-full md:w-[72vw] md:grid-cols-[1fr_1.1fr] lg:w-[60vw] ${e.fondo} ${e.texto}`}
             >
-              <div className="relative z-20 flex flex-col justify-end gap-5 px-4 pt-10 pb-8 md:px-8 md:pt-[calc(var(--alto-encabezado)+2rem)] md:pb-16">
-                <span className="self-start border-4 border-negro bg-blanco px-2 py-1 font-mono text-base font-bold text-negro">
-                  Pasillo {numeroPasillo(i)}
-                </span>
-                <h3
-                  className="font-display text-[min(4.5rem,calc(88vw/(var(--letras)*0.8)))] leading-[0.85] tracking-[-0.05em] uppercase md:text-[min(8rem,calc(34vw/(var(--letras)*0.8)))] lg:text-[min(8rem,calc(28vw/(var(--letras)*0.8)))]"
-                  style={{ "--letras": palabraMasLarga } as React.CSSProperties}
-                >
+              <div className="relative z-20 flex flex-col justify-center gap-6 px-4 pt-16 pb-8 md:px-12 md:pt-[calc(var(--alto-encabezado)+2rem)] md:pb-16">
+                <span className={`text-sm tabular-nums ${e.suave}`}>Pasillo {numeroPasillo(i)}</span>
+                <h3 className="font-titulo text-[clamp(2.5rem,4.8vw,4.75rem)] leading-[1.02] tracking-[-0.03em] [overflow-wrap:break-word] [text-wrap:balance]">
                   {categoria.nombre}
                 </h3>
-                <dl className="flex flex-wrap gap-3 font-mono text-base font-bold text-negro">
-                  <div className="border-4 border-negro bg-blanco px-3 py-2">
-                    <dt className="sr-only">Cantidad</dt>
-                    <dd>
-                      {cantidad} {cantidad === 1 ? "producto" : "productos"}
-                    </dd>
-                  </div>
-                  {desde !== null && (
-                    <div className="border-4 border-negro bg-amarillo px-3 py-2">
-                      <dt className="sr-only">Precio más bajo</dt>
-                      <dd>Desde {precio(desde)}</dd>
-                    </div>
-                  )}
-                </dl>
+                <p className={`text-base tabular-nums ${e.suave}`}>
+                  {cantidad} {cantidad === 1 ? "producto" : "productos"}
+                  {desde !== null && <> · desde {precio(desde)}</>}
+                </p>
                 <button
                   type="button"
                   onClick={() => irAPasillo(categoria.id)}
-                  className="flex cursor-pointer items-center justify-between gap-4 self-start border-4 border-negro bg-negro px-5 py-3 font-display text-lg text-amarillo uppercase shadow-duro-sm transition-transform duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-duro"
+                  className={`flex h-12 cursor-pointer items-center gap-2 self-start rounded-[10px] px-5 font-medium transition-colors duration-150 ease-sb ${e.boton}`}
                 >
                   Ver productos <IconoFlecha />
                 </button>
               </div>
-              {muestra && <Vista3D producto={muestra} className="h-[42svh] md:my-auto md:h-[62svh]" />}
+              {muestra && (
+                <div className="relative px-4 pb-10 md:flex md:items-center md:py-16 md:pr-12 md:pl-0">
+                  <div className={`relative w-full overflow-hidden rounded-2xl ${e.escenario}`}>
+                    <Vista3D producto={muestra} className="h-[40svh] md:h-[58svh]" />
+                  </div>
+                </div>
+              )}
             </article>
           );
         })}

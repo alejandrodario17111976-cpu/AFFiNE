@@ -78,7 +78,8 @@ export default function EscenaPortada({ productos }: { productos: Producto[] }) 
   const carrusel = useRef<THREE.Group>(null);
   const raiz = useRef<THREE.Group>(null);
   const quieto = useMemo(() => movimientoReducido(), []);
-  const radio = productos.length > 1 ? 2.6 + productos.length * 0.12 : 0;
+  // Las fotos reales son más anchas que los envases dibujados: más espacio entre productos
+  const radio = productos.length > 1 ? Math.max(2.8, productos.length * 0.66) : 0;
 
   useFrame((state, delta) => {
     const c = carrusel.current;
@@ -87,7 +88,11 @@ export default function EscenaPortada({ productos }: { productos: Producto[] }) 
     const avance = scrollPortada.valor;
     if (!quieto) c.rotation.y += delta * 0.18;
     // Que entre todo en pantallas angostas
-    const escala = THREE.MathUtils.clamp(state.viewport.width / 11.5, 0.45, 0.85);
+    // Ancho que ve la cámara de esta vista (no el de toda la pantalla), para que el mostrador entre justo
+    const camara = state.camera as THREE.PerspectiveCamera;
+    const anchoVisible =
+      2 * camara.position.length() * Math.tan(THREE.MathUtils.degToRad(camara.fov / 2)) * camara.aspect;
+    const escala = THREE.MathUtils.clamp(anchoVisible / (radio * 2 + 3.8), 0.36, 0.9);
     r.scale.setScalar(THREE.MathUtils.damp(r.scale.x, escala * (1 - avance * 0.25), 5, delta));
     r.rotation.x = THREE.MathUtils.damp(r.rotation.x, -puntero.y * 0.12 + avance * 0.5, 4, delta);
     r.rotation.z = THREE.MathUtils.damp(r.rotation.z, -puntero.x * 0.06, 4, delta);

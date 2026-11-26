@@ -1,10 +1,11 @@
 # San Benito — Tu mejor elección
 
-Sitio web de la tienda San Benito: portada con productos en 3D sobre un mostrador giratorio, góndola con buscador y filtros por pasillo, recorrido por pasillos, ofertas y un ticket de caja que arma el pedido para enviarlo por WhatsApp.
+Sitio web de San Benito (Las Catitas y La Dormida): productos reales en 3D sobre un mostrador giratorio, góndola con buscador y filtros, ofertas, afiches de promociones, pasillos y un ticket de papel térmico que arma el pedido para enviarlo por WhatsApp.
 
-Colores de la marca: azul lapislázuli, dorado y carmesí sobre marfil. Tipografías: Fraunces para títulos e Instrument Sans para el texto.
-
-Hecho con Next.js, Tailwind CSS, React Three Fiber, GSAP ScrollTrigger y Framer Motion.
+- Colores: azul lapislázuli (con textura de piedra y pirita), oro metálico y carmesí, sobre marfil.
+- Tipografías: Cormorant Garamond (títulos), Jost (texto) y Courier Prime (ticket).
+- Animaciones con Animate UI (Motion), GSAP ScrollTrigger y React Three Fiber.
+- Sonidos hechos con earshot (sin licencias): agregar y quitar productos, abrir y cerrar el ticket, enviar el pedido. Se apagan desde el menú.
 
 ## Cómo verlo en tu computadora
 
@@ -16,39 +17,49 @@ npm install
 npm run dev
 ```
 
-Abrí http://localhost:3000 para ver la tienda y http://localhost:3000/admin para editar el sitio.
-En tu computadora el panel no pide contraseña.
+Abrí http://localhost:3000. Para editar, tocá las tres rayitas → **AGL**. En tu computadora, si no configuraste una contraseña, es `sanbenito`.
 
-## Qué se puede editar desde el panel
+## AGL: el panel para editar todo
 
-Todo el contenido del sitio se edita en `/admin` (enlace "Administrar el sitio" al pie):
+Menú de las tres rayitas → **AGL** → contraseña. Al terminar, tocá **Guardar cambios**: el sitio se actualiza al instante.
 
-- **Productos y precios:** nombre, presentación, pasillo, precio, oferta, stock, si sale en la portada, tipo de envase 3D y colores.
-- **Pasillos:** nombre y color de cada uno, agregar o quitar.
+### Cambiar un precio
+
+1. Pestaña **Productos y precios**.
+2. Escribí el precio nuevo en el casillero dorado **Precio**.
+3. **Guardar cambios**.
+
+Atajos:
+
+- **Subir o bajar muchos precios a la vez:** elegí un pasillo (o Todos), escribí el porcentaje (`10` sube 10 %, `-5` baja 5 %) y tocá **Aplicar**. Redondea a la decena.
+- **Precio por cantidad** (como "2 por $2.690" o "3 kg por $9.990"): **Agregar precio por cantidad**, poné cuántas unidades y el precio total. El ticket aplica la mejor combinación sola.
+- **Oferta con precio tachado:** escribí el precio de antes en **Precio antes (oferta)**.
+- **Mostrar en Ofertas:** tildalo para que el producto aparezca en esa sección.
+
+### Agregar un producto
+
+1. **Agregar producto** (aparece arriba de la lista).
+2. Completá nombre, presentación (ej. `500 g`), pasillo, precio y, si querés, una descripción.
+3. **Subir foto**: desde el celular podés sacarla en el momento o elegirla de la galería. Para que se vea en 3D como las demás, usá una foto con el fondo transparente (PNG); con fondo se ve como foto rectangular.
+4. **Envase 3D**: elegí la forma (lata o frasco = cilindro que gira; bolsa = paquete abultado; foto recortada = plana).
+5. **Guardar cambios**.
+
+### Borrar un producto
+
+**Eliminar** en el producto y tocá de nuevo para confirmar. Después, **Guardar cambios**. La foto que ya no se usa se borra del servidor sola.
+
+### Afiches de promociones
+
+Pestaña **Afiches**: **Subir afiche**, ordenalos con **Antes/Después**, ponerles título o **Quitar**. Se ven en la sección "Promociones de la semana" y se agrandan con un toque.
+
+### Lo demás
+
+- **Pasillos:** nombre y color de cada uno.
 - **Textos y secciones:** todos los títulos, textos y botones, los pasos de "Cómo comprar" y qué secciones se muestran.
-- **Colores y fuentes:** los cuatro colores de la marca y la tipografía de títulos y de texto, con una muestra en vivo.
-- **Datos del negocio:** nombre, eslogan, WhatsApp, dirección, horarios, Instagram y moneda.
+- **Colores y fuentes:** los colores de la marca y las tipografías, con muestra en vivo.
+- **Datos del negocio:** sucursales (con enlace al mapa), teléfono, WhatsApp, horarios, Instagram, Facebook y TikTok. Lo que quede vacío no aparece en el sitio.
 
-## Cómo actualizar los precios
-
-1. Entrá a `/admin`.
-2. Cambiá el precio en el casillero dorado de cada producto.
-3. Tocá **Guardar cambios**. El sitio muestra los precios nuevos al instante.
-
-En el panel también podés:
-
-- **Poner un producto en oferta:** escribí el precio anterior en "Precio antes (oferta)". Aparece tachado, con el porcentaje de descuento, y el producto pasa a la sección Ofertas.
-- **Subir o bajar varios precios a la vez:** elegí un pasillo (o todos), escribí un porcentaje (por ejemplo `10` o `-5`) y tocá **Aplicar**. Los precios se redondean a la decena.
-- **Marcar sin stock**, elegir qué productos salen en la portada, agregar o eliminar productos y pasillos.
-- **Cargar los datos del negocio:** WhatsApp, dirección, horarios e Instagram. Lo que quede vacío no se muestra. Con el WhatsApp cargado, el ticket se envía como pedido por WhatsApp.
-
-Todo se guarda en `data/tienda.json`. Los precios que vienen cargados son de ejemplo: reemplazalos por los tuyos.
-
-## Productos en 3D
-
-Cada producto se dibuja en 3D a partir de su nombre, su presentación y sus colores, eligiendo un tipo de envase: frasco de vidrio, botella, lata, caja, cartón o bolsa. Si cambiás el nombre o los colores en el panel, el 3D se actualiza solo.
-
-Si tenés un modelo 3D propio en formato `.glb`, copialo a `public/modelos/` y escribí su ruta en "Modelo 3D propio" (por ejemplo `/modelos/yerba.glb`). Si el archivo no carga, se muestra el envase dibujado.
+Todo se guarda en `data/tienda.json`; las fotos en `data/imagenes/` y los afiches en `data/afiches/`.
 
 ## Vista previa sin servidor
 
@@ -56,7 +67,7 @@ Si tenés un modelo 3D propio en formato `.glb`, copialo a `public/modelos/` y e
 npm run vista-previa
 ```
 
-Genera en `vista-previa/dist/` una versión estática del sitio con los datos de `data/tienda.json`, sin el panel de administración. Sirve para mostrar cómo queda antes de publicarlo.
+Genera en `vista-previa/dist/` una versión estática con los datos actuales, sin AGL (no hay servidor donde guardar).
 
 ## Publicar el sitio
 
@@ -65,6 +76,6 @@ npm run build
 ADMIN_PASSWORD=tu-contraseña npm start
 ```
 
-- En el sitio publicado, `/admin` pide la contraseña de `ADMIN_PASSWORD`. Sin esa variable, el panel no deja editar.
-- El panel guarda los cambios en el archivo `data/tienda.json` del servidor, así que el sitio tiene que correr en un servidor con disco propio (un VPS o un servicio que permita escribir archivos).
-- En hostings de solo lectura (como Vercel), editá los precios en tu computadora, tocá **Descargar copia** en el panel, reemplazá `data/tienda.json` con ese archivo y volvé a publicar.
+- En el sitio publicado, AGL pide la contraseña de `ADMIN_PASSWORD`. Sin esa variable no se puede editar (no hay contraseña por defecto).
+- AGL guarda en archivos del servidor (`data/`), así que el sitio tiene que correr en un servidor con disco propio (un VPS o un servicio que permita escribir archivos, como Railway o Render con disco).
+- En hostings de solo lectura (como Vercel), editá en tu computadora, tocá **Descargar copia**, reemplazá `data/tienda.json` y volvé a publicar.

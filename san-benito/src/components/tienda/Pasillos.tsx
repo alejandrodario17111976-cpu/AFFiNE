@@ -15,10 +15,10 @@ const ESTILO: Record<ColorCategoria, { fondo: string; texto: string; suave: stri
     texto: "text-marfil",
     suave: "text-marfil/70",
     escenario: "bg-lapis-medio/60",
-    boton: "bg-oro text-tinta hover:bg-[color-mix(in_oklab,var(--sb-acento)_85%,white)]",
+    boton: "boton-oro text-tinta",
   },
   destacado: {
-    fondo: "bg-carmesi-hondo grano",
+    fondo: "terciopelo",
     texto: "text-marfil",
     suave: "text-marfil/70",
     escenario: "bg-carmesi/40",
@@ -75,10 +75,10 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
   );
 
   return (
-    <section id="pasillos" ref={seccion} className="relative overflow-hidden bg-marfil">
+    <section id="pasillos" ref={seccion} className="papel relative overflow-hidden bg-marfil">
       <div ref={pista} className="flex flex-col md:h-[100svh] md:w-max md:flex-row">
         <div className="flex flex-col justify-center gap-4 px-4 py-20 md:w-[40vw] md:px-12 md:pt-[calc(var(--alto-encabezado)+2rem)]">
-          <h2 className="font-titulo text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1.02] tracking-[-0.03em] text-tinta">
+          <h2 className="font-titulo text-[clamp(2.75rem,6vw,5rem)] leading-[1] tracking-[-0.02em] text-tinta">
             {textos.pasillosTitulo}
           </h2>
           {textos.pasillosTexto && <p className="max-w-sm text-lg leading-relaxed text-tinta-2">{textos.pasillosTexto}</p>}
@@ -94,7 +94,7 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
             >
               <div className="relative z-20 flex flex-col justify-center gap-6 px-4 pt-16 pb-8 md:px-12 md:pt-[calc(var(--alto-encabezado)+2rem)] md:pb-16">
                 <span className={`text-sm tabular-nums ${e.suave}`}>Pasillo {numeroPasillo(i)}</span>
-                <h3 className="font-titulo text-[clamp(2.5rem,4.8vw,4.75rem)] leading-[1.02] tracking-[-0.03em] [overflow-wrap:break-word] [text-wrap:balance]">
+                <h3 className="font-titulo text-[clamp(2.75rem,5.2vw,5.25rem)] leading-[1] tracking-[-0.015em] [overflow-wrap:break-word] [text-wrap:balance]">
                   {categoria.nombre}
                 </h3>
                 <p className={`text-base tabular-nums ${e.suave}`}>

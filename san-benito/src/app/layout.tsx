@@ -5,6 +5,9 @@ import "@fontsource-variable/cormorant-garamond";
 import "@fontsource-variable/newsreader";
 import "@fontsource-variable/instrument-sans";
 import "@fontsource-variable/dm-sans";
+import "@fontsource-variable/jost";
+import "@fontsource/courier-prime/400.css";
+import "@fontsource/courier-prime/700.css";
 import "./globals.css";
 import { getTienda } from "@/lib/tienda";
 

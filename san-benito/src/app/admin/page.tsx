@@ -3,10 +3,10 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTienda } from "@/lib/tienda";
 import EditorAdmin, { type ModoAcceso } from "@/components/admin/EditorAdmin";
-import { guardarTienda, verificarClave } from "./acciones";
+import { borrarImagen, guardarTienda, subirImagen, verificarClave } from "./acciones";
 
 export const metadata: Metadata = {
-  title: "Administrar el sitio",
+  title: "AGL",
   robots: { index: false, follow: false },
 };
 
@@ -14,12 +14,17 @@ async function Panel() {
   // La contraseña se lee al abrir la página, no al compilar el sitio.
   await connection();
   const tienda = await getTienda();
-  const modo: ModoAcceso = process.env.ADMIN_PASSWORD
-    ? "clave"
-    : process.env.NODE_ENV === "production"
-      ? "sin-configurar"
-      : "libre";
-  return <EditorAdmin inicial={tienda} modo={modo} acciones={{ guardarTienda, verificarClave }} />;
+  const modo: ModoAcceso =
+    process.env.ADMIN_PASSWORD || process.env.NODE_ENV !== "production" ? "clave" : "sin-configurar";
+  const claveLocal = !process.env.ADMIN_PASSWORD && process.env.NODE_ENV !== "production";
+  return (
+    <EditorAdmin
+      inicial={tienda}
+      modo={modo}
+      claveLocal={claveLocal}
+      acciones={{ guardarTienda, verificarClave, subirImagen, borrarImagen }}
+    />
+  );
 }
 
 export default function Admin() {

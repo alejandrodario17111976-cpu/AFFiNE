@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import type { Tienda } from "@/lib/tipos";
 import TarjetaProducto from "./TarjetaProducto";
 import { IconoBuscar, IconoCerrar } from "./Iconos";
@@ -30,18 +30,18 @@ export default function Gondola({
     const q = sinAcentos(busqueda.trim());
     return productos
       .filter((p) => filtro === "todas" || p.categoria === filtro)
-      .filter((p) => !q || sinAcentos(`${p.nombre} ${p.presentacion}`).includes(q))
+      .filter((p) => !q || sinAcentos(`${p.nombre} ${p.presentacion} ${p.descripcion}`).includes(q))
       .sort((a, b) => Number(b.disponible) - Number(a.disponible));
   }, [productos, filtro, busqueda]);
 
   const pestañas = [{ id: "todas", nombre: "Todos" }, ...conProductos];
 
   return (
-    <section id="productos" className="relative bg-marfil">
+    <section id="productos" className="papel relative bg-marfil">
       <div className="mx-auto max-w-[1440px] px-4 pt-20 md:px-8 md:pt-28">
         <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
           <div>
-            <h2 className="titulo-seccion font-titulo text-[clamp(2.5rem,5.6vw,4.5rem)] leading-[1.02] tracking-[-0.03em] text-tinta">
+            <h2 className="titulo-seccion font-titulo text-[clamp(2.75rem,6vw,5rem)] leading-[1] tracking-[-0.02em] text-tinta">
               {textos.productosTitulo}
             </h2>
             {textos.productosTexto && (

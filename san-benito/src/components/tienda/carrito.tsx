@@ -2,7 +2,8 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import type { Negocio, Producto } from "@/lib/tipos";
-import { formatearPrecio } from "@/lib/formato";
+import { formatearPrecio, precioPara } from "@/lib/formato";
+import { sonar } from "@/lib/sonidos";
 
 const CLAVE = "san-benito-ticket";
 
@@ -10,11 +11,14 @@ export interface LineaTicket {
   producto: Producto;
   cantidad: number;
   subtotal: number;
+  /** Lo que se ahorra por los precios por cantidad. */
+  ahorro: number;
 }
 
 interface ValorCarrito {
   lineas: LineaTicket[];
   total: number;
+  ahorro: number;
   unidades: number;
   cantidadDe: (id: string) => number;
   agregar: (id: string) => void;
@@ -107,7 +111,8 @@ export function CarritoProvider({
       Object.entries(cantidades).flatMap(([id, cantidad]) => {
         const producto = porId.get(id);
         if (!producto || !producto.disponible || cantidad <= 0) return [];
-        return [{ producto, cantidad, subtotal: producto.precio * cantidad }];
+        const subtotal = precioPara(producto, cantidad);
+        return [{ producto, cantidad, subtotal, ahorro: producto.precio * cantidad - subtotal }];
       }),
     [cantidades, porId],
   );
@@ -126,14 +131,30 @@ export function CarritoProvider({
   const valor: ValorCarrito = {
     lineas,
     total: lineas.reduce((s, l) => s + l.subtotal, 0),
+    ahorro: lineas.reduce((s, l) => s + l.ahorro, 0),
     unidades: lineas.reduce((s, l) => s + l.cantidad, 0),
     cantidadDe: (id) => (porId.get(id)?.disponible ? (cantidades[id] ?? 0) : 0),
-    agregar: (id) => cambiar(id, 1),
-    quitar: (id) => cambiar(id, -1),
-    vaciar: () => escribir(VACIO),
+    agregar: (id) => {
+      sonar("agregar");
+      cambiar(id, 1);
+    },
+    quitar: (id) => {
+      sonar("quitar");
+      cambiar(id, -1);
+    },
+    vaciar: () => {
+      sonar("quitar");
+      escribir(VACIO);
+    },
     abierto,
-    abrir: () => setAbierto(true),
-    cerrar: () => setAbierto(false),
+    abrir: () => {
+      sonar("ticket-abrir");
+      setAbierto(true);
+    },
+    cerrar: () => {
+      sonar("ticket-cerrar");
+      setAbierto(false);
+    },
     precio,
     negocio,
   };
@@ -141,11 +162,18 @@ export function CarritoProvider({
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
-export function textoPedido(lineas: LineaTicket[], total: number, negocio: Negocio) {
+export function textoPedido(lineas: LineaTicket[], total: number, negocio: Negocio, numero: string) {
   const f = (v: number) => formatearPrecio(v, negocio);
   const filas = lineas.map(
     (l) =>
-      `- ${l.cantidad} x ${l.producto.nombre}${l.producto.presentacion ? ` (${l.producto.presentacion})` : ""}: ${f(l.subtotal)}`,
+      `- ${l.cantidad} x ${l.producto.nombre}${l.producto.presentacion ? ` (${l.producto.presentacion})` : ""}: ${f(l.subtotal)}` +
+      (l.ahorro > 0 ? ` (ahorro ${f(l.ahorro)})` : ""),
   );
-  return [`Hola ${negocio.nombre}, quiero hacer este pedido:`, "", ...filas, "", `Total: ${f(total)}`].join("\n");
+  return [
+    `Hola ${negocio.nombre}, quiero hacer este pedido (N.º ${numero}):`,
+    "",
+    ...filas,
+    "",
+    `Total: ${f(total)}`,
+  ].join("\n");
 }

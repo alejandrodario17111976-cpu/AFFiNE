@@ -2,10 +2,11 @@
 
 import { Component, Suspense, useMemo, useRef, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Environment, RoundedBox, useGLTF } from "@react-three/drei";
+import { Environment, RoundedBox, useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import type { Producto } from "@/lib/tipos";
+import type { Envase, Producto } from "@/lib/tipos";
+import { urlMedio } from "@/lib/formato";
 import { useMarca } from "@/lib/marca";
 import { texturaEtiqueta } from "./etiquetas";
 import { movimientoReducido, puntero, type Interaccion } from "./compartido";
@@ -326,6 +327,8 @@ function EnvaseProcedural({ p, calidad }: { p: Producto; calidad: Calidad }) {
       return <Carton p={p} />;
     case "bolsa":
       return <Bolsa p={p} />;
+    case "recorte":
+      return <Caja p={p} />;
   }
 }
 
@@ -357,6 +360,120 @@ class SiFalla extends Component<{ alternativa: ReactNode; children: ReactNode },
 
 /* ---------- Producto ---------- */
 
+/* ---------- Foto real del producto, con volumen ---------- */
+
+type Forma = "cilindro" | "bolsa" | "plana";
+
+function formaDe(envase: Envase): Forma {
+  if (envase === "lata" || envase === "frasco" || envase === "botella") return "cilindro";
+  if (envase === "bolsa" || envase === "caja" || envase === "carton") return "bolsa";
+  return "plana";
+}
+
+/**
+ * Medio cilindro donde la foto se ve igual que la original de frente: cada columna de la imagen
+ * va al ángulo que le corresponde (u = (sen θ + 1) / 2), así al girar se comporta como una lata real.
+ */
+function medioCilindro(ancho: number, alto: number) {
+  const radio = ancho / 2;
+  const columnas = 48;
+  const filas = 2;
+  const posiciones: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+  for (let f = 0; f <= filas; f++) {
+    const v = f / filas;
+    for (let c = 0; c <= columnas; c++) {
+      const angulo = -Math.PI / 2 + (Math.PI * c) / columnas;
+      posiciones.push(radio * Math.sin(angulo), (v - 0.5) * alto, radio * Math.cos(angulo));
+      uvs.push((Math.sin(angulo) + 1) / 2, v);
+    }
+  }
+  for (let f = 0; f < filas; f++) {
+    for (let c = 0; c < columnas; c++) {
+      const a = f * (columnas + 1) + c;
+      const b = a + columnas + 1;
+      indices.push(a, a + 1, b, b, a + 1, b + 1);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(posiciones, 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
+  g.setIndex(indices);
+  g.computeVertexNormals();
+  return g;
+}
+
+/** Plano con el centro abultado hacia afuera, como un paquete lleno. */
+function planoAbultado(ancho: number, alto: number, bulto: number) {
+  const g = new THREE.PlaneGeometry(ancho, alto, 24, 32);
+  const pos = g.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const u = pos.getX(i) / (ancho / 2);
+    const v = pos.getY(i) / (alto / 2);
+    pos.setZ(i, bulto * (1 - u * u) * (1 - v * v * 0.55));
+  }
+  g.computeVertexNormals();
+  return g;
+}
+
+function ajustarTextura(t: THREE.Texture) {
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+}
+
+function Recorte3D({ archivo, envase }: { archivo: string; envase: Envase }) {
+  const textura = useTexture(urlMedio("imagenes", archivo));
+  const forma = formaDe(envase);
+
+  const { geometria, ancho, grosor } = useMemo(() => {
+    ajustarTextura(textura);
+    const img = textura.image as { width: number; height: number };
+    const aspecto = img.width / img.height;
+    let alto = 2.3;
+    let an = alto * aspecto;
+    if (an > 2.7) {
+      an = 2.7;
+      alto = an / aspecto;
+    }
+    const g =
+      forma === "cilindro"
+        ? medioCilindro(an, alto)
+        : forma === "bolsa"
+          ? planoAbultado(an, alto, Math.min(0.22, an * 0.12))
+          : planoAbultado(an, alto, 0.025);
+    return { geometria: g, ancho: an, grosor: forma === "bolsa" ? 0.07 : 0.035 };
+  }, [textura, forma]);
+
+  const brillo = forma === "plana" ? 0.6 : 0.38;
+  const capas = forma === "cilindro" ? [] : [-0.5, -0.25, 0, 0.25, 0.5].map((k) => k * grosor);
+
+  return (
+    <group>
+      {/* Frente y dorso: la misma foto, cada una mirando hacia su lado */}
+      {[0, Math.PI].map((giro) => (
+        <mesh key={giro} geometry={geometria} rotation-y={giro} position-z={forma === "cilindro" ? 0 : giro ? -grosor / 2 : grosor / 2}>
+          <meshPhysicalMaterial
+            map={textura}
+            alphaTest={0.45}
+            roughness={brillo}
+            clearcoat={forma === "plana" ? 0 : 0.45}
+            clearcoatRoughness={0.35}
+            envMapIntensity={0.9}
+          />
+        </mesh>
+      ))}
+      {/* Canto: capas de la misma silueta, más oscuras, para que tenga espesor */}
+      {capas.map((z) => (
+        <mesh key={z} position-z={z}>
+          <planeGeometry args={[ancho, ancho / ((textura.image as { width: number }).width / (textura.image as { height: number }).height)]} />
+          <meshStandardMaterial map={textura} color="#9a9086" alphaTest={0.45} side={THREE.DoubleSide} roughness={0.8} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 export function Producto3D({
   producto,
   calidad = "normal",
@@ -370,13 +487,19 @@ export function Producto3D({
 }) {
   const grupo = useRef<THREE.Group>(null);
   const quieto = useMemo(() => movimientoReducido(), []);
+  // Las fotos de paquetes se balancean (siempre se ve el frente); las latas y potes giran completos.
+  const balancea = Boolean(producto.imagen) && formaDe(producto.envase) !== "cilindro";
+  const fase = useMemo(() => (producto.id.length * 0.37) % (Math.PI * 2), [producto.id]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const g = grupo.current;
     if (!g) return;
     const i = interaccion?.current;
     const encima = Boolean(i?.hover);
-    if (!quieto) g.rotation.y += delta * (encima ? 1.5 : velocidad);
+    if (!quieto && balancea) {
+      const objetivo = Math.sin(state.clock.elapsedTime * 0.6 + fase) * 0.42 + (encima ? (i?.x ?? 0) * 0.5 : 0);
+      g.rotation.y = THREE.MathUtils.damp(g.rotation.y, objetivo, 4, delta);
+    } else if (!quieto) g.rotation.y += delta * (encima ? 1.5 : velocidad);
     g.rotation.x = THREE.MathUtils.damp(g.rotation.x, encima ? (i?.y ?? 0) * 0.3 : 0, 6, delta);
     g.rotation.z = THREE.MathUtils.damp(g.rotation.z, encima ? -(i?.x ?? 0) * 0.18 : 0, 6, delta);
     g.position.y = THREE.MathUtils.damp(g.position.y, encima ? 0.12 : 0, 6, delta);
@@ -387,7 +510,13 @@ export function Producto3D({
   const procedural = <EnvaseProcedural p={producto} calidad={calidad} />;
   return (
     <group ref={grupo}>
-      {producto.modelo ? (
+      {producto.imagen && !producto.modelo ? (
+        <SiFalla alternativa={procedural}>
+          <Suspense fallback={null}>
+            <Recorte3D archivo={producto.imagen} envase={producto.envase} />
+          </Suspense>
+        </SiFalla>
+      ) : producto.modelo ? (
         <SiFalla alternativa={procedural}>
           <Suspense fallback={procedural}>
             <ModeloPropio url={producto.modelo} />

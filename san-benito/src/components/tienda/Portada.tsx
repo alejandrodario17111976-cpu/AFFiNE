@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import { View } from "@react-three/drei";
 import type { Tienda } from "@/lib/tipos";
 import { descuento } from "@/lib/formato";
@@ -8,6 +8,19 @@ import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import EscenaPortada from "@/components/escena/EscenaPortada";
 import { scrollPortada } from "@/components/escena/compartido";
 import { IconoFlecha } from "./Iconos";
+
+/** true en celulares (menos de 768 px de ancho). En el servidor arranca en false. */
+function useAngosto() {
+  return useSyncExternalStore(
+    (avisar) => {
+      const mq = window.matchMedia("(max-width: 767px)");
+      mq.addEventListener("change", avisar);
+      return () => mq.removeEventListener("change", avisar);
+    },
+    () => window.matchMedia("(max-width: 767px)").matches,
+    () => false,
+  );
+}
 
 export default function Portada({
   tienda,
@@ -21,7 +34,8 @@ export default function Portada({
 
   const disponibles = productos.filter((p) => p.disponible);
   const marcados = disponibles.filter((p) => p.destacado);
-  const destacados = (marcados.length ? marcados : disponibles).slice(0, 6);
+  const angosto = useAngosto();
+  const destacados = (marcados.length ? marcados : disponibles).slice(0, angosto ? 4 : 6);
   const ofertas = disponibles.filter((p) => descuento(p) > 0).length;
   const conProductos = categorias.filter((c) => productos.some((p) => p.categoria === c.id));
 
@@ -64,10 +78,10 @@ export default function Portada({
           <p className="portada-entra text-sm text-marfil/60 tabular-nums">
             {productos.length} productos · {conProductos.length} {conProductos.length === 1 ? "pasillo" : "pasillos"}
           </p>
-          <h1 className="portada-entra mt-4 font-titulo text-[clamp(3.25rem,8.4vw,8rem)] leading-[0.95] tracking-[-0.03em]">
+          <h1 className="portada-entra mt-4 font-titulo text-[clamp(4rem,10vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.015em]">
             {negocio.nombre}
           </h1>
-          <p className="portada-entra mt-4 font-titulo text-[clamp(1.5rem,2.8vw,2.5rem)] leading-tight text-oro">
+          <p className="portada-entra mt-3 font-titulo texto-oro text-[clamp(1.9rem,3.4vw,3rem)] leading-tight font-semibold">
             {negocio.eslogan}
           </p>
           {textos.portadaTexto && (
@@ -76,7 +90,7 @@ export default function Portada({
           <div className="portada-entra mt-8 flex flex-wrap gap-3">
             <a
               href="#productos"
-              className="flex h-12 items-center gap-2 rounded-[10px] bg-oro px-5 font-medium text-tinta shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition-colors duration-150 ease-sb hover:bg-[color-mix(in_oklab,var(--sb-acento)_85%,white)]"
+              className="boton-oro flex h-12 items-center gap-2 rounded-[10px] px-5 font-medium text-tinta"
             >
               {textos.botonProductos} <IconoFlecha />
             </a>

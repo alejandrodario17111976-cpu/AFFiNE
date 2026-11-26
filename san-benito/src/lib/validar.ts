@@ -2,13 +2,16 @@ import { FUENTES_TEXTO, FUENTES_TITULOS } from "./fuentes";
 import {
   COLORES_CATEGORIA,
   ENVASES,
+  type Afiche,
   type Apariencia,
   type Categoria,
   type ColorCategoria,
   type Envase,
   type Negocio,
   type Producto,
+  type Promo,
   type Secciones,
+  type Sucursal,
   type Textos,
   type Tienda,
 } from "./tipos";
@@ -18,8 +21,8 @@ export const APARIENCIA_INICIAL: Apariencia = {
   colorAcento: "#C9A44C",
   colorDestacado: "#A11D33",
   colorFondo: "#F7F3EA",
-  fuenteTitulos: "fraunces",
-  fuenteTexto: "instrument",
+  fuenteTitulos: "cormorant",
+  fuenteTexto: "jost",
 };
 
 export const TEXTOS_INICIALES: Textos = {
@@ -32,6 +35,8 @@ export const TEXTOS_INICIALES: Textos = {
   pasillosTexto: "Recorré el negocio por pasillo y entrá directo a lo que buscás.",
   ofertasTitulo: "Ofertas",
   ofertasTexto: "",
+  afichesTitulo: "Promociones de la semana",
+  afichesTexto: "",
   comoComprarTitulo: "Cómo comprar",
   pasos: [
     { titulo: "Elegí tus productos", texto: "Sumalos al ticket con el botón Agregar." },
@@ -41,7 +46,10 @@ export const TEXTOS_INICIALES: Textos = {
   pieTexto: "",
 };
 
-export const SECCIONES_INICIALES: Secciones = { pasillos: true, ofertas: true, comoComprar: true };
+export const SECCIONES_INICIALES: Secciones = { pasillos: true, ofertas: true, afiches: true, comoComprar: true };
+
+/** Nombre de archivo de una imagen guardada en el servidor (data/imagenes o data/afiches). */
+export const ARCHIVO_IMAGEN = /^[a-z0-9][a-z0-9-]{0,80}\.(webp|png|jpg|jpeg)$/;
 
 /** Colores de versiones anteriores del sitio. */
 const COLORES_VIEJOS: Record<string, ColorCategoria> = { azul: "principal", amarillo: "acento", rojo: "destacado" };
@@ -98,15 +106,41 @@ function normalizarNegocio(v: unknown): Negocio {
   if (instagram && !/^[A-Za-z0-9._]+$/.test(instagram)) {
     throw new ErrorDatos("Instagram solo puede tener letras, números, puntos y guiones bajos.");
   }
+  const tiktok = texto(n.tiktok, "TikTok", { max: 40, requerido: false }).replace(/^@/, "");
+  if (tiktok && !/^[A-Za-z0-9._]+$/.test(tiktok)) {
+    throw new ErrorDatos("TikTok solo puede tener letras, números, puntos y guiones bajos.");
+  }
+  const facebook = texto(n.facebook, "Facebook", { max: 200, requerido: false });
+  if (facebook && !/^https:\/\/(www\.|m\.)?facebook\.com\/\S+$/.test(facebook)) {
+    throw new ErrorDatos("Facebook tiene que ser la dirección de la página, como https://facebook.com/sanbenito.");
+  }
   const moneda = texto(n.moneda, "Moneda", { max: 3 }).toUpperCase();
   if (!/^[A-Z]{3}$/.test(moneda)) throw new ErrorDatos("La moneda tiene que ser un código de 3 letras, por ejemplo ARS.");
+  // Versiones anteriores guardaban una sola dirección
+  const entrada: unknown[] = Array.isArray(n.sucursales)
+    ? n.sucursales
+    : typeof n.direccion === "string" && n.direccion.trim()
+      ? [{ nombre: "", direccion: n.direccion }]
+      : [];
+  if (entrada.length > 10) throw new ErrorDatos("Puede haber hasta 10 sucursales.");
+  const sucursales: Sucursal[] = entrada.map((v, i) => {
+    const s = obj(v, `Sucursal ${i + 1}`);
+    return {
+      nombre: texto(s.nombre, `El nombre de la sucursal ${i + 1}`, { max: 60, requerido: false }),
+      direccion: texto(s.direccion, `La dirección de la sucursal ${i + 1}`, { max: 120 }),
+    };
+  });
   return {
     nombre: texto(n.nombre, "Nombre del negocio", { max: 40 }),
     eslogan: texto(n.eslogan, "Eslogan", { max: 60 }),
+    sucursales,
+    provincia: texto(n.provincia, "Provincia", { max: 60, requerido: false }),
+    telefono: texto(n.telefono, "Teléfono", { max: 30, requerido: false }),
     whatsapp,
-    direccion: texto(n.direccion, "Dirección", { max: 160, requerido: false }),
     horarios: texto(n.horarios, "Horarios", { max: 160, requerido: false }),
     instagram,
+    facebook,
+    tiktok,
     locale: texto(n.locale, "Formato regional", { max: 12 }),
     moneda,
   };
@@ -138,12 +172,33 @@ function normalizarProducto(v: unknown, i: number, categorias: Set<string>): Pro
   const precioActual = precio(p.precio, `El precio de "${nombre}"`) as number;
   let anterior = precio(p.precioAnterior, `El precio anterior de "${nombre}"`, true);
   if (anterior !== null && anterior <= precioActual) anterior = null;
+  const imagen = texto(p.imagen, `La foto de "${nombre}"`, { max: 90, requerido: false });
+  if (imagen && !ARCHIVO_IMAGEN.test(imagen)) throw new ErrorDatos(`La foto de "${nombre}" no es válida.`);
+  const promosEntrada = Array.isArray(p.promos) ? p.promos : [];
+  if (promosEntrada.length > 5) throw new ErrorDatos(`"${nombre}" puede tener hasta 5 precios por cantidad.`);
+  const promos: Promo[] = promosEntrada
+    .map((v, j) => {
+      const pr = obj(v, `Precio por cantidad ${j + 1} de "${nombre}"`);
+      const cantidad = Math.round(Number(pr.cantidad));
+      if (!Number.isFinite(cantidad) || cantidad < 2 || cantidad > 99) {
+        throw new ErrorDatos(`En "${nombre}", la cantidad de cada precio por cantidad tiene que ser entre 2 y 99.`);
+      }
+      return { cantidad, precio: precio(pr.precio, `El precio por ${cantidad} de "${nombre}"`) as number };
+    })
+    .sort((a, b) => a.cantidad - b.cantidad);
+  if (new Set(promos.map((x) => x.cantidad)).size !== promos.length) {
+    throw new ErrorDatos(`"${nombre}" tiene dos precios para la misma cantidad.`);
+  }
   return {
     id,
     nombre,
     categoria,
     presentacion: texto(p.presentacion, `Presentación de "${nombre}"`, { max: 30, requerido: false }),
+    descripcion: texto(p.descripcion, `La descripción de "${nombre}"`, { max: 160, requerido: false }),
     precio: precioActual,
+    promos,
+    enOferta: p.enOferta === true,
+    imagen,
     precioAnterior: anterior,
     disponible: p.disponible !== false,
     destacado: p.destacado === true,
@@ -187,6 +242,8 @@ function normalizarTextos(v: unknown): Textos {
     pasillosTexto: campo("pasillosTexto", "El texto de pasillos", 240),
     ofertasTitulo: campo("ofertasTitulo", "El título de ofertas", 60) || TEXTOS_INICIALES.ofertasTitulo,
     ofertasTexto: campo("ofertasTexto", "El texto de ofertas", 240),
+    afichesTitulo: campo("afichesTitulo", "El título de los afiches", 60) || TEXTOS_INICIALES.afichesTitulo,
+    afichesTexto: campo("afichesTexto", "El texto de los afiches", 240),
     comoComprarTitulo: campo("comoComprarTitulo", "El título de cómo comprar", 60) || TEXTOS_INICIALES.comoComprarTitulo,
     pasos: pasosEntrada.map((paso, i) => {
       const p = obj(paso, `Paso ${i + 1}`);
@@ -204,6 +261,7 @@ function normalizarSecciones(v: unknown): Secciones {
   return {
     pasillos: s.pasillos !== false,
     ofertas: s.ofertas !== false,
+    afiches: s.afiches !== false,
     comoComprar: s.comoComprar !== false,
   };
 }
@@ -232,6 +290,15 @@ export function normalizarTienda(v: unknown): Tienda {
     idsProducto.add(p.id);
   }
 
+  const afichesEntrada = Array.isArray(t.afiches) ? t.afiches : [];
+  if (afichesEntrada.length > 40) throw new ErrorDatos("Puede haber hasta 40 afiches.");
+  const afiches: Afiche[] = afichesEntrada.map((v, i) => {
+    const a = obj(v, `Afiche ${i + 1}`);
+    const imagen = texto(a.imagen, `La imagen del afiche ${i + 1}`, { max: 90 });
+    if (!ARCHIVO_IMAGEN.test(imagen)) throw new ErrorDatos(`La imagen del afiche ${i + 1} no es válida.`);
+    return { imagen, titulo: texto(a.titulo, `El título del afiche ${i + 1}`, { max: 80, requerido: false }) };
+  });
+
   return {
     negocio: normalizarNegocio(t.negocio),
     apariencia: normalizarApariencia(t.apariencia),
@@ -239,5 +306,6 @@ export function normalizarTienda(v: unknown): Tienda {
     secciones: normalizarSecciones(t.secciones),
     categorias,
     productos,
+    afiches,
   };
 }

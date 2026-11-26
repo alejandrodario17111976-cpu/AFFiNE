@@ -2,10 +2,23 @@
   "negocio": {
     "nombre": "San Benito",
     "eslogan": "Tu mejor elección",
+    "sucursales": [
+      {
+        "nombre": "Las Catitas",
+        "direccion": "Emilio Civit 93"
+      },
+      {
+        "nombre": "La Dormida",
+        "direccion": "Remo Falsiani 55"
+      }
+    ],
+    "provincia": "Mendoza",
+    "telefono": "",
     "whatsapp": "",
-    "direccion": "",
     "horarios": "",
     "instagram": "",
+    "facebook": "",
+    "tiktok": "",
     "locale": "es-AR",
     "moneda": "ARS"
   },
@@ -14,8 +27,8 @@
     "colorAcento": "#C9A44C",
     "colorDestacado": "#A11D33",
     "colorFondo": "#F7F3EA",
-    "fuenteTitulos": "fraunces",
-    "fuenteTexto": "instrument"
+    "fuenteTitulos": "cormorant",
+    "fuenteTexto": "jost"
   },
   "textos": {
     "portadaTexto": "Elegí tus productos, armá el ticket y envialo al negocio.",
@@ -42,12 +55,15 @@
         "texto": "Mandalo por WhatsApp o copialo para que te lo confirmen."
       }
     ],
-    "pieTexto": ""
+    "pieTexto": "",
+    "afichesTitulo": "Promociones de la semana",
+    "afichesTexto": ""
   },
   "secciones": {
     "pasillos": true,
     "ofertas": true,
-    "comoComprar": true
+    "comoComprar": true,
+    "afiches": true
   },
   "categorias": [
     {
@@ -66,316 +82,211 @@
       "color": "principal"
     },
     {
-      "id": "lacteos",
-      "nombre": "Lácteos",
-      "color": "acento"
-    },
-    {
-      "id": "limpieza",
-      "nombre": "Limpieza",
-      "color": "principal"
+      "id": "carnes",
+      "nombre": "Carnes y pollo",
+      "color": "destacado"
     }
   ],
   "productos": [
     {
-      "id": "aceite-girasol",
-      "nombre": "Aceite de girasol",
-      "categoria": "almacen",
-      "presentacion": "1,5 L",
-      "precio": 4390,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": true,
-      "envase": "botella",
-      "color": "#F3EBDD",
-      "colorSecundario": "#C9A44C",
-      "contenido": "#E0B23A",
-      "modelo": ""
-    },
-    {
-      "id": "salsa-tomate",
-      "nombre": "Salsa de tomate",
-      "categoria": "almacen",
-      "presentacion": "340 g",
-      "precio": 2190,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": true,
-      "envase": "frasco",
-      "color": "#A11D33",
-      "colorSecundario": "#C9A44C",
-      "contenido": "#8E1420",
-      "modelo": ""
-    },
-    {
-      "id": "yerba-mate",
-      "nombre": "Yerba mate",
+      "id": "yerba-chamigo",
+      "nombre": "Yerba mate Chamigo",
       "categoria": "desayuno",
-      "presentacion": "1 kg",
-      "precio": 5490,
-      "precioAnterior": 6290,
+      "presentacion": "500 g",
+      "descripcion": "Extra suave, libre de gluten",
+      "precio": 1390,
+      "promos": [
+        {
+          "cantidad": 2,
+          "precio": 2690
+        },
+        {
+          "cantidad": 10,
+          "precio": 12900
+        }
+      ],
+      "enOferta": true,
+      "imagen": "yerba-chamigo.webp",
+      "precioAnterior": null,
       "disponible": true,
       "destacado": true,
       "envase": "bolsa",
-      "color": "#26619C",
+      "color": "#F2D21B",
+      "colorSecundario": "#7A1F3D",
+      "contenido": "",
+      "modelo": ""
+    },
+    {
+      "id": "pollo-cuarto-trasero",
+      "nombre": "Pollo cuarto trasero",
+      "categoria": "carnes",
+      "presentacion": "1 kg",
+      "descripcion": "Corte jugoso y sabroso, ideal para tus comidas diarias",
+      "precio": 3500,
+      "promos": [
+        {
+          "cantidad": 3,
+          "precio": 9990
+        }
+      ],
+      "enOferta": true,
+      "imagen": "pollo-cuarto-trasero.webp",
+      "precioAnterior": null,
+      "disponible": true,
+      "destacado": true,
+      "envase": "recorte",
+      "color": "#F2C9A8",
+      "colorSecundario": "#C98B5E",
+      "contenido": "",
+      "modelo": ""
+    },
+    {
+      "id": "cerveza-brul-lager",
+      "nombre": "Cerveza Brül Lager",
+      "categoria": "bebidas",
+      "presentacion": "1000 ml",
+      "descripcion": "Cerveza lager en lata de un litro",
+      "precio": 3890,
+      "promos": [],
+      "enOferta": false,
+      "imagen": "cerveza-brul-lager.webp",
+      "precioAnterior": null,
+      "disponible": true,
+      "destacado": true,
+      "envase": "lata",
+      "color": "#F4F1EA",
       "colorSecundario": "#C9A44C",
       "contenido": "",
       "modelo": ""
     },
     {
-      "id": "dulce-de-leche",
-      "nombre": "Dulce de leche",
+      "id": "dulce-de-leche-arrodul",
+      "nombre": "Dulce de leche Arrodul Clásico",
       "categoria": "desayuno",
       "presentacion": "400 g",
-      "precio": 3190,
+      "descripcion": "Elaboración tradicional",
+      "precio": 1790,
+      "promos": [],
+      "enOferta": false,
+      "imagen": "dulce-de-leche-arrodul.webp",
       "precioAnterior": null,
       "disponible": true,
       "destacado": true,
-      "envase": "frasco",
-      "color": "#F3EBDD",
-      "colorSecundario": "#A11D33",
+      "envase": "bolsa",
+      "color": "#3A2116",
+      "colorSecundario": "#B8743A",
       "contenido": "#8A4B16",
       "modelo": ""
     },
     {
-      "id": "gaseosa-cola",
-      "nombre": "Gaseosa cola",
-      "categoria": "bebidas",
-      "presentacion": "2,25 L",
-      "precio": 3290,
-      "precioAnterior": 3790,
+      "id": "promo-fideos-pure",
+      "nombre": "Fideos + puré de tomate Molto",
+      "categoria": "almacen",
+      "presentacion": "500 g + 520 g",
+      "descripcion": "1 paquete de fideos Molto, Santa Isabel o Marolio + 1 puré de tomate Molto 520 g",
+      "precio": 990,
+      "promos": [],
+      "enOferta": true,
+      "imagen": "promo-fideos-pure.webp",
+      "precioAnterior": null,
       "disponible": true,
       "destacado": true,
-      "envase": "botella",
+      "envase": "recorte",
       "color": "#A11D33",
-      "colorSecundario": "#A11D33",
-      "contenido": "#2B0F05",
-      "modelo": ""
-    },
-    {
-      "id": "arroz-largo-fino",
-      "nombre": "Arroz largo fino",
-      "categoria": "almacen",
-      "presentacion": "1 kg",
-      "precio": 1850,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "bolsa",
-      "color": "#F3EBDD",
-      "colorSecundario": "#26619C",
+      "colorSecundario": "#C9A44C",
       "contenido": "",
       "modelo": ""
     },
     {
-      "id": "fideos-tirabuzon",
-      "nombre": "Fideos tirabuzón",
+      "id": "fideos-la-providencia",
+      "nombre": "Fideos La Providencia",
       "categoria": "almacen",
       "presentacion": "500 g",
-      "precio": 1290,
-      "precioAnterior": 1490,
-      "disponible": true,
-      "destacado": false,
-      "envase": "caja",
-      "color": "#C9A44C",
-      "colorSecundario": "#1B3F6B",
-      "contenido": "",
-      "modelo": ""
-    },
-    {
-      "id": "harina-000",
-      "nombre": "Harina 000",
-      "categoria": "almacen",
-      "presentacion": "1 kg",
-      "precio": 990,
+      "descripcion": "Rigatti, munición, tirabuzón, tallarín, spaghetti o tagliatelle",
+      "precio": 890,
+      "promos": [],
+      "enOferta": true,
+      "imagen": "fideos-la-providencia.webp",
       "precioAnterior": null,
       "disponible": true,
       "destacado": false,
-      "envase": "bolsa",
-      "color": "#1B3F6B",
-      "colorSecundario": "#F3EBDD",
+      "envase": "recorte",
+      "color": "#1E7A3A",
+      "colorSecundario": "#F2D21B",
       "contenido": "",
       "modelo": ""
     },
     {
-      "id": "azucar",
-      "nombre": "Azúcar",
+      "id": "azucar-ledesma",
+      "nombre": "Azúcar Ledesma Clásica",
       "categoria": "almacen",
       "presentacion": "1 kg",
+      "descripcion": "Azúcar común tipo A, sin TACC",
       "precio": 1390,
+      "promos": [],
+      "enOferta": false,
+      "imagen": "azucar-ledesma.webp",
       "precioAnterior": null,
       "disponible": true,
       "destacado": false,
       "envase": "bolsa",
-      "color": "#F3EBDD",
-      "colorSecundario": "#A11D33",
+      "color": "#1E5FB8",
+      "colorSecundario": "#FFFFFF",
       "contenido": "",
       "modelo": ""
     },
     {
-      "id": "pure-tomate",
-      "nombre": "Puré de tomate",
+      "id": "azucar-marolio",
+      "nombre": "Azúcar Marolio",
       "categoria": "almacen",
-      "presentacion": "520 g",
-      "precio": 990,
-      "precioAnterior": 1190,
-      "disponible": true,
-      "destacado": false,
-      "envase": "lata",
-      "color": "#A11D33",
-      "colorSecundario": "#C9A44C",
-      "contenido": "",
-      "modelo": ""
-    },
-    {
-      "id": "atun-en-aceite",
-      "nombre": "Atún en aceite",
-      "categoria": "almacen",
-      "presentacion": "170 g",
-      "precio": 2790,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "lata",
-      "color": "#26619C",
-      "colorSecundario": "#C9A44C",
-      "contenido": "",
-      "modelo": ""
-    },
-    {
-      "id": "cafe-molido",
-      "nombre": "Café molido",
-      "categoria": "desayuno",
-      "presentacion": "250 g",
-      "precio": 4890,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "frasco",
-      "color": "#1F1B16",
-      "colorSecundario": "#C9A44C",
-      "contenido": "#3B2314",
-      "modelo": ""
-    },
-    {
-      "id": "mermelada-durazno",
-      "nombre": "Mermelada de durazno",
-      "categoria": "desayuno",
-      "presentacion": "454 g",
-      "precio": 2690,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "frasco",
-      "color": "#C9A44C",
-      "colorSecundario": "#A11D33",
-      "contenido": "#E07B1A",
-      "modelo": ""
-    },
-    {
-      "id": "galletitas-agua",
-      "nombre": "Galletitas de agua",
-      "categoria": "desayuno",
-      "presentacion": "300 g",
-      "precio": 1490,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "caja",
-      "color": "#26619C",
-      "colorSecundario": "#F3EBDD",
-      "contenido": "",
-      "modelo": ""
-    },
-    {
-      "id": "agua-mineral",
-      "nombre": "Agua mineral sin gas",
-      "categoria": "bebidas",
-      "presentacion": "2 L",
+      "presentacion": "1 kg",
+      "descripcion": "Azúcar común tipo A",
       "precio": 1290,
+      "promos": [],
+      "enOferta": false,
+      "imagen": "azucar-marolio.webp",
       "precioAnterior": null,
       "disponible": true,
       "destacado": false,
-      "envase": "botella",
-      "color": "#26619C",
-      "colorSecundario": "#F3EBDD",
-      "contenido": "#D6ECFF",
-      "modelo": ""
-    },
-    {
-      "id": "jugo-naranja",
-      "nombre": "Jugo de naranja",
-      "categoria": "bebidas",
-      "presentacion": "1 L",
-      "precio": 1990,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "carton",
-      "color": "#C9A44C",
-      "colorSecundario": "#A11D33",
+      "envase": "bolsa",
+      "color": "#F4F1EA",
+      "colorSecundario": "#3C8ED8",
       "contenido": "",
       "modelo": ""
+    }
+  ],
+  "afiches": [
+    {
+      "imagen": "yerba-chamigo.webp",
+      "titulo": "Yerba Chamigo 500 g"
     },
     {
-      "id": "leche-entera",
-      "nombre": "Leche entera",
-      "categoria": "lacteos",
-      "presentacion": "1 L",
-      "precio": 1450,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "carton",
-      "color": "#F3EBDD",
-      "colorSecundario": "#26619C",
-      "contenido": "",
-      "modelo": ""
+      "imagen": "pollo-cuarto-trasero.webp",
+      "titulo": "Pollo cuarto trasero"
     },
     {
-      "id": "detergente",
-      "nombre": "Detergente lavavajillas",
-      "categoria": "limpieza",
-      "presentacion": "750 ml",
-      "precio": 1890,
-      "precioAnterior": 2190,
-      "disponible": true,
-      "destacado": false,
-      "envase": "botella",
-      "color": "#1B3F6B",
-      "colorSecundario": "#C9A44C",
-      "contenido": "#F2E6A6",
-      "modelo": ""
+      "imagen": "cerveza-brul-lager.webp",
+      "titulo": "Cerveza Brül Lager 1000 ml"
     },
     {
-      "id": "lavandina",
-      "nombre": "Lavandina",
-      "categoria": "limpieza",
-      "presentacion": "1 L",
-      "precio": 990,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "botella",
-      "color": "#F3EBDD",
-      "colorSecundario": "#26619C",
-      "contenido": "#F2F2F2",
-      "modelo": ""
+      "imagen": "promo-fideos-pure.webp",
+      "titulo": "Fideos + puré de tomate Molto"
     },
     {
-      "id": "jabon-en-polvo",
-      "nombre": "Jabón en polvo",
-      "categoria": "limpieza",
-      "presentacion": "800 g",
-      "precio": 4590,
-      "precioAnterior": null,
-      "disponible": true,
-      "destacado": false,
-      "envase": "caja",
-      "color": "#A11D33",
-      "colorSecundario": "#F3EBDD",
-      "contenido": "",
-      "modelo": ""
+      "imagen": "dulce-de-leche-arrodul.webp",
+      "titulo": "Dulce de leche Arrodul 400 g"
+    },
+    {
+      "imagen": "fideos-la-providencia.webp",
+      "titulo": "Fideos La Providencia"
+    },
+    {
+      "imagen": "azucar-ledesma.webp",
+      "titulo": "Azúcar Ledesma 1 kg"
+    },
+    {
+      "imagen": "azucar-marolio.webp",
+      "titulo": "Azúcar Marolio 1 kg"
     }
   ]
 }

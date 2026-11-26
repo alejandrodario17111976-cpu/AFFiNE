@@ -62,3 +62,17 @@ Igual que la versión 2, con estos cambios:
 python3 src_v3/tts.py && python3 src_v3/render.py all 4 && python3 src_v3/mix.py
 python3 src_v3/mix.py mux guia_ingles_v3.mp4
 ```
+
+## Versión 4: horizontal (`src_v4/`)
+
+Mismo contenido y audio que la versión 3, en formato horizontal 1920x1080 a 60 fps:
+
+- Escena a la izquierda sobre la colchoneta, pizarrón en un panel a la derecha y subtítulos debajo de la escena.
+- Transiciones deslizantes entre escenas, zoom suave de cámara, respiración y parpadeo de los personajes,
+  tarjetas que entran con efecto resorte.
+
+```bash
+# requiere build3/ generado por src_v3 (audio y línea de tiempo)
+python3 src_v4/render.py all 4
+python3 src_v4/render.py mux guia_ingles_horizontal.mp4
+```

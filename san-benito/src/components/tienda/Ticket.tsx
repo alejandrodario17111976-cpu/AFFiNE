@@ -3,10 +3,21 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import JsBarcode from "jsbarcode";
-import { spring, transition as motionTransition, useShouldReduceMotion, useTempoTransition } from "@animate-ui/react/utils/motion";
+import {
+  scale,
+  spring,
+  transition as motionTransition,
+  useShouldReduceMotion,
+  useTempoTransition,
+} from "@animate-ui/react/utils/motion";
+import { dniConPuntos } from "@/lib/clientes";
 import { FUENTE_TICKET } from "@/lib/fuentes";
+import { guardarUltimoPedido, useMiCliente, useUltimoPedido } from "@/lib/mis-datos";
 import { sonar } from "@/lib/sonidos";
-import { textoPedido, useCarrito } from "./carrito";
+import type { Pedido } from "@/lib/tipos";
+import { textoPedido, useCarrito, type LineaTicket } from "./carrito";
+import { lanzarConfeti } from "./Efectos";
+import { FormularioCliente } from "./MisDatos";
 import PrecioAnimado from "./PrecioAnimado";
 import { IconoCerrar, IconoCopiar, IconoMas, IconoMenos, IconoMensaje } from "./Iconos";
 
@@ -46,22 +57,60 @@ function Fila({ izquierda, derecha, fuerte = false }: { izquierda: string; derec
 }
 
 function Corte() {
-  return <div className="my-3 overflow-hidden whitespace-nowrap opacity-60 select-none" aria-hidden>{"- ".repeat(40)}</div>;
+  return (
+    <div className="my-3 overflow-hidden whitespace-nowrap opacity-60 select-none" aria-hidden>
+      {"- ".repeat(40)}
+    </div>
+  );
+}
+
+const ESTADO_TEXTO = { pendiente: "En preparación", listo: "¡Listo para retirar!", entregado: "Entregado" } as const;
+
+/** Las líneas del ticket, sean del carrito o de un pedido ya enviado. */
+type LineaVista = { id: string; nombre: string; presentacion: string; cantidad: number; unitario: number; ahorro: number; editable: boolean };
+
+function desdeCarrito(l: LineaTicket): LineaVista {
+  return {
+    id: l.producto.id,
+    nombre: l.producto.nombre,
+    presentacion: l.producto.presentacion,
+    cantidad: l.cantidad,
+    unitario: l.producto.precio,
+    ahorro: l.ahorro,
+    editable: true,
+  };
 }
 
 function PanelTicket() {
-  const { lineas, total, ahorro, unidades, cerrar, agregar, quitar, vaciar, precio, negocio } = useCarrito();
+  const { lineas, total, ahorro, unidades, cerrar, agregar, quitar, vaciar, precio, negocio, servicio } = useCarrito();
+  const cliente = useMiCliente();
+  const ultimo = useUltimoPedido();
   const botonCerrar = useRef<HTMLButtonElement>(null);
   const [copiado, setCopiado] = useState<"no" | "si" | "error">("no");
+  const [paso, setPaso] = useState<"ticket" | "datos">("ticket");
+  const [enviado, setEnviado] = useState<Pedido | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
   const [ahora] = useState(() => new Date());
   const reducir = useShouldReduceMotion();
   const entrar = useTempoTransition(motionTransition.sheet);
   const salir = useTempoTransition(motionTransition.dismiss);
   const presion = useTempoTransition(spring.press);
+  const cambio = useTempoTransition(motionTransition.menu);
 
-  const numero = `${String(ahora.getFullYear()).slice(2)}${dos(ahora.getMonth() + 1)}${dos(ahora.getDate())}-${dos(ahora.getHours())}${dos(ahora.getMinutes())}`;
-  const fecha = new Intl.DateTimeFormat(negocio.locale, { dateStyle: "short" }).format(ahora);
-  const hora = new Intl.DateTimeFormat(negocio.locale, { timeStyle: "short" }).format(ahora);
+  const numeroLocal = `${String(ahora.getFullYear()).slice(2)}${dos(ahora.getMonth() + 1)}${dos(ahora.getDate())}-${dos(ahora.getHours())}${dos(ahora.getMinutes())}`;
+  const numero = enviado?.numero ?? numeroLocal;
+  const fechaPedido = enviado ? new Date(enviado.creado) : ahora;
+  const fecha = new Intl.DateTimeFormat(negocio.locale, { dateStyle: "short" }).format(fechaPedido);
+  const hora = new Intl.DateTimeFormat(negocio.locale, { timeStyle: "short" }).format(fechaPedido);
+  const estado = enviado && ultimo?.numero === enviado.numero ? ultimo.estado : enviado ? "pendiente" : null;
+
+  const vista: LineaVista[] = enviado
+    ? enviado.lineas.map((l) => ({ ...l, unitario: l.precioUnitario, editable: false }))
+    : lineas.map(desdeCarrito);
+  const totalVista = enviado ? enviado.total : total;
+  const ahorroVista = enviado ? enviado.ahorro : ahorro;
+  const unidadesVista = enviado ? enviado.lineas.reduce((s, l) => s + l.cantidad, 0) : unidades;
 
   useEffect(() => {
     botonCerrar.current?.focus();
@@ -69,39 +118,81 @@ function PanelTicket() {
     window.addEventListener("keydown", alPresionar);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // Mientras sale el papel, suena la impresora
+    const impresora = lineas.length > 0 ? window.setTimeout(() => sonar("impresion"), 380) : undefined;
     return () => {
       window.removeEventListener("keydown", alPresionar);
       document.body.style.overflow = overflow;
+      window.clearTimeout(impresora);
     };
-  }, [cerrar]);
+    // Solo al abrir el ticket
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const pedido = textoPedido(lineas, total, negocio, numero);
-  const enlaceWhatsapp = negocio.whatsapp
-    ? `https://wa.me/${negocio.whatsapp}?text=${encodeURIComponent(pedido)}`
-    : null;
+  const texto = enviado
+    ? textoPedido(
+        enviado.lineas.map((l) => ({
+          producto: { nombre: l.nombre, presentacion: l.presentacion, precio: l.precioUnitario } as LineaTicket["producto"],
+          cantidad: l.cantidad,
+          subtotal: l.subtotal,
+          ahorro: l.ahorro,
+        })),
+        enviado.total,
+        negocio,
+        enviado.numero,
+        enviado.cliente,
+      )
+    : textoPedido(lineas, total, negocio, numero, cliente);
+  const enlaceWhatsapp = negocio.whatsapp ? `https://wa.me/${negocio.whatsapp}?text=${encodeURIComponent(texto)}` : null;
 
   const copiar = async () => {
+    let ok = false;
     try {
-      await navigator.clipboard.writeText(pedido);
-      sonar("pedido");
-      setCopiado("si");
+      await navigator.clipboard.writeText(texto);
+      ok = true;
     } catch {
       // Copia de respaldo para navegadores que no dejan usar el portapapeles
       const area = document.createElement("textarea");
-      area.value = pedido;
+      area.value = texto;
       area.style.position = "fixed";
       area.style.opacity = "0";
       document.body.appendChild(area);
       area.select();
-      const ok = document.execCommand("copy");
+      ok = document.execCommand("copy");
       area.remove();
-      if (ok) sonar("pedido");
-      setCopiado(ok ? "si" : "error");
     }
-    setTimeout(() => setCopiado("no"), 2400);
+    sonar(ok ? "pedido" : "error");
+    setCopiado(ok ? "si" : "error");
+    window.setTimeout(() => setCopiado("no"), 2400);
+  };
+
+  const enviar = async () => {
+    if (!servicio || !cliente || enviando) return;
+    setEnviando(true);
+    setError("");
+    const r = await servicio.enviar({ cliente, items: lineas.map((l) => ({ id: l.producto.id, cantidad: l.cantidad })) });
+    setEnviando(false);
+    if (!r.ok) {
+      sonar("error");
+      setError(r.error);
+      return;
+    }
+    setEnviado(r.valor);
+    guardarUltimoPedido({
+      numero: r.valor.numero,
+      dni: r.valor.cliente.dni,
+      total: r.valor.total,
+      creado: r.valor.creado,
+      estado: "pendiente",
+    });
+    sonar("pedido");
+    const caja = botonCerrar.current?.closest("aside")?.getBoundingClientRect();
+    lanzarConfeti(caja ? caja.left + caja.width / 2 : undefined, caja ? caja.top + caja.height * 0.6 : undefined);
+    vaciar(false);
   };
 
   const oculto = { transform: reducir ? "translateY(0%)" : "translateY(-102%)", opacity: reducir ? 0 : 1 };
+  const hayAlgo = vista.length > 0;
 
   return (
     <>
@@ -127,8 +218,13 @@ function PanelTicket() {
         <div className="relative z-10 mx-3 mt-3 rounded-2xl bg-[linear-gradient(180deg,#2b3340,#11151c)] px-4 pt-3 pb-5 text-marfil shadow-[0_18px_40px_-12px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.12)]">
           <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-sm text-marfil/70">
-              <span className="size-2 rounded-full bg-[#5BD17B] shadow-[0_0_6px_#5BD17B]" aria-hidden />
-              Tu ticket
+              <motion.span
+                className="size-2 rounded-full bg-[#5BD17B] shadow-[0_0_6px_#5BD17B]"
+                animate={enviando ? { opacity: [1, 0.25, 1] } : { opacity: 1 }}
+                transition={enviando ? { duration: 0.8, repeat: Infinity } : undefined}
+                aria-hidden
+              />
+              {paso === "datos" ? "Tus datos" : enviado ? `Pedido ${enviado.numero}` : "Tu ticket"}
             </span>
             <motion.button
               ref={botonCerrar}
@@ -144,132 +240,238 @@ function PanelTicket() {
           <div className="absolute inset-x-5 bottom-2 h-2 rounded-full bg-black shadow-[inset_0_2px_3px_rgba(0,0,0,0.9),0_1px_0_rgba(255,255,255,0.08)]" />
         </div>
 
-        <div className="-mt-3 min-h-0 flex-1 overflow-hidden px-7">
-          <motion.div
-            className="ticket-papel borde-ticket relative max-h-full overflow-y-auto px-5 pt-8 pb-12"
-            style={{ fontFamily: FUENTE_TICKET }}
-            initial={oculto}
-            animate={{ transform: "translateY(0%)", opacity: 1, transition: { duration: reducir ? 0.2 : 0.9, ease: [0.25, 1, 0.5, 1] } }}
-            exit={{ ...oculto, transition: salir }}
-          >
-            <div className="text-center">
-              <p className="text-[22px] font-bold tracking-[0.14em] uppercase">{negocio.nombre}</p>
-              <p className="mt-0.5 text-[13px]">{negocio.eslogan}</p>
-              {negocio.sucursales.map((s) => (
-                <p key={`${s.nombre}${s.direccion}`} className="text-[11px] uppercase">
-                  {s.direccion}
-                  {s.nombre ? ` · ${s.nombre}` : ""}
-                </p>
-              ))}
-            </div>
-            <Corte />
-            <div className="text-[12px] uppercase">
-              <Fila izquierda="Pedido N.º" derecha={numero} />
-              <Fila izquierda={`Fecha ${fecha}`} derecha={`Hora ${hora}`} />
-            </div>
-            <Corte />
-
-            {lineas.length === 0 ? (
-              <p className="py-6 text-center text-[13px] uppercase">Tu ticket está vacío</p>
-            ) : (
-              <ul className="flex flex-col gap-3 text-[13px]">
-                <AnimatePresence initial>
-                  {lineas.map((l, i) => (
-                    <motion.li
-                      key={l.producto.id}
-                      layout
-                      // Cada línea se "imprime" de arriba hacia abajo
-                      initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
-                      animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
-                      exit={{ opacity: 0, transition: salir }}
-                      transition={{ delay: 0.55 + Math.min(i, 8) * 0.09, duration: 0.18, ease: "linear" }}
-                    >
-                      <p className="text-[12px]">
-                        {l.cantidad} x {precio(l.producto.precio)}
-                      </p>
-                      <Fila izquierda={l.producto.nombre.toUpperCase()} derecha={precio(l.producto.precio * l.cantidad)} />
-                      {l.ahorro > 0 && <Fila izquierda="  Promo por cantidad" derecha={`-${precio(l.ahorro)}`} />}
-                      <div className="mt-1.5 flex items-center justify-between text-[11px]">
-                        <span className="opacity-70">{l.producto.presentacion}</span>
-                        <span className="flex items-center border border-current/40">
-                          <button
-                            type="button"
-                            onClick={() => quitar(l.producto.id)}
-                            aria-label={`Quitar una unidad de ${l.producto.nombre}`}
-                            className="flex size-7 cursor-pointer items-center justify-center hover:bg-black/5"
-                          >
-                            <IconoMenos />
-                          </button>
-                          <span className="w-7 text-center font-bold tabular-nums">{l.cantidad}</span>
-                          <button
-                            type="button"
-                            onClick={() => agregar(l.producto.id)}
-                            aria-label={`Agregar una unidad de ${l.producto.nombre}`}
-                            className="flex size-7 cursor-pointer items-center justify-center hover:bg-black/5"
-                          >
-                            <IconoMas />
-                          </button>
-                        </span>
-                      </div>
-                    </motion.li>
+        <AnimatePresence mode="wait" initial={false}>
+          {paso === "datos" ? (
+            <motion.div
+              key="datos"
+              className="grano relative mx-3 mt-3 min-h-0 flex-1 overflow-y-auto rounded-2xl border border-oro/25 bg-lapis-hondo p-5 text-marfil"
+              initial={{ opacity: 0, transform: "translateY(12px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)", transition: cambio }}
+              exit={{ opacity: 0, transform: "translateY(12px)", transition: cambio }}
+            >
+              <h2 className="font-titulo text-3xl">Tus datos</h2>
+              <p className="mt-1 mb-4 text-sm text-marfil/60">Van impresos en el ticket para que el negocio sepa de quién es el pedido</p>
+              <FormularioCliente textoBoton="Listo, volver al ticket" alGuardar={() => setPaso("ticket")} />
+              <button
+                type="button"
+                onClick={() => setPaso("ticket")}
+                className="mt-3 w-full cursor-pointer py-2 text-sm text-marfil/60 hover:text-marfil"
+              >
+                Volver sin guardar
+              </button>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="ticket"
+              className="-mt-3 min-h-0 flex-1 overflow-hidden px-7"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: cambio }}
+            >
+              <motion.div
+                className="ticket-papel borde-ticket relative max-h-full overflow-y-auto px-5 pt-8 pb-12"
+                style={{ fontFamily: FUENTE_TICKET }}
+                initial={oculto}
+                animate={{ transform: "translateY(0%)", opacity: 1, transition: { duration: reducir ? 0.2 : 0.9, ease: [0.25, 1, 0.5, 1] } }}
+                exit={{ ...oculto, transition: salir }}
+              >
+                <div className="text-center">
+                  <p className="text-[22px] font-bold tracking-[0.14em] uppercase">{negocio.nombre}</p>
+                  <p className="mt-0.5 text-[13px]">{negocio.eslogan}</p>
+                  {negocio.sucursales.map((s) => (
+                    <p key={`${s.nombre}${s.direccion}`} className="text-[11px] uppercase">
+                      {s.direccion}
+                      {s.nombre ? ` · ${s.nombre}` : ""}
+                    </p>
                   ))}
-                </AnimatePresence>
-              </ul>
-            )}
+                </div>
+                <Corte />
+                <div className="text-[12px] uppercase">
+                  <Fila izquierda="Pedido N.º" derecha={numero} />
+                  <Fila izquierda={`Fecha ${fecha}`} derecha={`Hora ${hora}`} />
+                </div>
+                {(enviado?.cliente ?? cliente) && (
+                  <>
+                    <Corte />
+                    <div className="text-[12px] uppercase">
+                      <Fila
+                        izquierda="Cliente"
+                        derecha={`${(enviado?.cliente ?? cliente)!.nombre} ${(enviado?.cliente ?? cliente)!.apellido}`}
+                      />
+                      <Fila izquierda="DNI" derecha={dniConPuntos((enviado?.cliente ?? cliente)!.dni)} />
+                      <Fila izquierda="Celular" derecha={(enviado?.cliente ?? cliente)!.telefono} />
+                    </div>
+                  </>
+                )}
+                <Corte />
 
-            <Corte />
-            <div className="text-[13px] uppercase">
-              <Fila izquierda="Artículos" derecha={String(unidades)} />
-              {ahorro > 0 && <Fila izquierda="Ahorro" derecha={`-${precio(ahorro)}`} />}
-            </div>
-            <div className="mt-3 flex items-baseline justify-between text-[13px] uppercase">
-              <span className="font-bold">Total</span>
-              <PrecioAnimado valor={total} className="text-[28px] font-bold" />
-            </div>
-            <Corte />
-            <CodigoBarras valor={numero} />
-            <p className="mt-1 text-center text-[11px] tracking-[0.3em]">*{numero}*</p>
-            <p className="mt-4 text-center text-[12px] uppercase">Gracias por elegirnos</p>
-          </motion.div>
-        </div>
+                {!hayAlgo ? (
+                  <p className="py-6 text-center text-[13px] uppercase">Tu ticket está vacío</p>
+                ) : (
+                  <ul className="flex flex-col gap-3 text-[13px]">
+                    <AnimatePresence initial>
+                      {vista.map((l, i) => (
+                        <motion.li
+                          key={l.id}
+                          layout
+                          // Cada línea se "imprime" de arriba hacia abajo
+                          initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}
+                          animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }}
+                          exit={{ opacity: 0, transition: salir }}
+                          transition={{ delay: 0.55 + Math.min(i, 8) * 0.09, duration: 0.18, ease: "linear" }}
+                        >
+                          <p className="text-[12px]">
+                            {l.cantidad} x {precio(l.unitario)}
+                          </p>
+                          <Fila izquierda={l.nombre.toUpperCase()} derecha={precio(l.unitario * l.cantidad)} />
+                          {l.ahorro > 0 && <Fila izquierda="  Promo por cantidad" derecha={`-${precio(l.ahorro)}`} />}
+                          <div className="mt-1.5 flex items-center justify-between text-[11px]">
+                            <span className="opacity-70">{l.presentacion}</span>
+                            {l.editable && (
+                              <span className="flex items-center border border-current/40">
+                                <button
+                                  type="button"
+                                  onClick={() => quitar(l.id)}
+                                  aria-label={`Quitar una unidad de ${l.nombre}`}
+                                  className="flex size-7 cursor-pointer items-center justify-center hover:bg-black/5"
+                                >
+                                  <IconoMenos />
+                                </button>
+                                <span className="w-7 text-center font-bold tabular-nums">{l.cantidad}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => agregar(l.id)}
+                                  aria-label={`Agregar una unidad de ${l.nombre}`}
+                                  className="flex size-7 cursor-pointer items-center justify-center hover:bg-black/5"
+                                >
+                                  <IconoMas />
+                                </button>
+                              </span>
+                            )}
+                          </div>
+                        </motion.li>
+                      ))}
+                    </AnimatePresence>
+                  </ul>
+                )}
 
-        {lineas.length > 0 && (
+                <Corte />
+                <div className="text-[13px] uppercase">
+                  <Fila izquierda="Artículos" derecha={String(unidadesVista)} />
+                  {ahorroVista > 0 && <Fila izquierda="Ahorro" derecha={`-${precio(ahorroVista)}`} />}
+                </div>
+                <div className="mt-3 flex items-baseline justify-between text-[13px] uppercase">
+                  <span className="font-bold">Total</span>
+                  <PrecioAnimado valor={totalVista} className="text-[28px] font-bold" />
+                </div>
+                {estado && (
+                  <>
+                    <Corte />
+                    <motion.p
+                      key={estado}
+                      initial={{ opacity: 0, filter: "blur(3px)" }}
+                      animate={{ opacity: 1, filter: "blur(0px)" }}
+                      className={`text-center text-[14px] font-bold uppercase ${estado === "listo" ? "text-[#1d6b3a]" : ""}`}
+                    >
+                      Estado: {ESTADO_TEXTO[estado]}
+                    </motion.p>
+                  </>
+                )}
+                <Corte />
+                <CodigoBarras valor={numero} />
+                <p className="mt-1 text-center text-[11px] tracking-[0.3em]">*{numero}*</p>
+                <p className="mt-4 text-center text-[12px] uppercase">Gracias por elegirnos</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {paso === "ticket" && hayAlgo && (
           <motion.div
-            className="mx-3 mb-3 flex flex-col gap-2 rounded-2xl bg-lapis-noche/90 p-3 pb-[max(12px,env(safe-area-inset-bottom,0px))] shadow-flotante backdrop-blur"
+            className="mx-3 mb-3 flex flex-col gap-2 rounded-2xl bg-lapis-noche/90 p-3 pb-[max(12px,env(safe-area-inset-bottom,0px))] text-marfil shadow-flotante backdrop-blur"
             initial={{ opacity: 0, transform: "translateY(12px)" }}
             animate={{ opacity: 1, transform: "translateY(0px)", transition: { ...entrar, delay: 0.35 } }}
             exit={{ opacity: 0, transition: salir }}
           >
-            {enlaceWhatsapp && (
-              <motion.a
-                href={enlaceWhatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => sonar("pedido")}
-                whileTap={{ scale: 0.97, transition: presion }}
-                className="boton-oro flex h-12 items-center justify-center gap-2 rounded-[10px] font-medium text-tinta"
-              >
-                <IconoMensaje /> Enviar por WhatsApp
-              </motion.a>
+            {error && (
+              <p role="alert" className="rounded-lg bg-carmesi/30 px-3 py-2 text-sm">
+                {error}
+              </p>
             )}
-            <motion.button
-              type="button"
-              onClick={copiar}
-              whileTap={{ scale: 0.97, transition: presion }}
-              className={`flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] font-medium ${
-                enlaceWhatsapp ? "border border-marfil/20 text-marfil hover:bg-white/5" : "boton-oro text-tinta"
-              }`}
-            >
-              <IconoCopiar />
-              {copiado === "si" ? "Pedido copiado" : copiado === "error" ? "No se pudo copiar" : "Copiar pedido"}
-            </motion.button>
-            <button
-              type="button"
-              onClick={vaciar}
-              className="cursor-pointer py-1.5 text-sm text-marfil/60 underline-offset-4 hover:text-marfil hover:underline"
-            >
-              Vaciar ticket
-            </button>
+
+            {enviado ? (
+              <p className="px-1 text-sm text-marfil/80">
+                {estado === "listo"
+                  ? "Tu pedido está listo. Pasá a retirarlo"
+                  : `Recibimos tu pedido. Te avisamos por WhatsApp al ${enviado.cliente.telefono} cuando esté listo`}
+              </p>
+            ) : !cliente ? (
+              <motion.button
+                type="button"
+                onClick={() => setPaso("datos")}
+                whileTap={{ scale: scale.press, transition: presion }}
+                className="boton-oro flex h-12 cursor-pointer items-center justify-center rounded-[10px] font-medium text-tinta"
+              >
+                Continuar con mis datos
+              </motion.button>
+            ) : servicio ? (
+              <motion.button
+                type="button"
+                onClick={enviar}
+                disabled={enviando}
+                whileTap={{ scale: scale.press, transition: presion }}
+                className="boton-oro flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] font-medium text-tinta disabled:opacity-70"
+              >
+                {enviando ? "Enviando…" : "Enviar pedido al negocio"}
+              </motion.button>
+            ) : null}
+
+            {(cliente || enviado) && (
+              <div className="grid grid-cols-2 gap-2">
+                <motion.button
+                  type="button"
+                  onClick={copiar}
+                  whileTap={{ scale: scale.press, transition: presion }}
+                  className={`flex h-12 cursor-pointer items-center justify-center gap-2 rounded-[10px] text-sm font-medium ${
+                    servicio && !enviado ? "border border-marfil/20 hover:bg-white/5" : "boton-oro text-tinta"
+                  } ${enlaceWhatsapp ? "" : "col-span-2"}`}
+                >
+                  <IconoCopiar />
+                  {copiado === "si" ? "Copiado" : copiado === "error" ? "No se pudo" : "Copiar ticket"}
+                </motion.button>
+                {enlaceWhatsapp && (
+                  <motion.a
+                    href={enlaceWhatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => sonar("pedido")}
+                    whileTap={{ scale: scale.press, transition: presion }}
+                    className="flex h-12 items-center justify-center gap-2 rounded-[10px] border border-marfil/20 text-sm font-medium hover:bg-white/5"
+                  >
+                    <IconoMensaje /> WhatsApp
+                  </motion.a>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between px-1 pt-1 text-sm text-marfil/60">
+              {cliente && !enviado ? (
+                <button type="button" onClick={() => setPaso("datos")} className="cursor-pointer hover:text-marfil">
+                  {cliente.nombre} {cliente.apellido} · cambiar
+                </button>
+              ) : (
+                <span />
+              )}
+              {enviado ? (
+                <button type="button" onClick={cerrar} className="cursor-pointer hover:text-marfil">
+                  Seguir comprando
+                </button>
+              ) : (
+                <button type="button" onClick={() => vaciar()} className="cursor-pointer hover:text-marfil">
+                  Vaciar ticket
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </motion.aside>

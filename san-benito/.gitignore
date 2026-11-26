@@ -46,3 +46,8 @@ next-env.d.ts
 
 # El .gitignore de la raíz del repo excluye las carpetas "lib"; esta sí es parte del sitio
 !/src/lib/
+
+# Pedidos y clientes reales: tienen datos personales (DNI, celular). Nunca al repositorio.
+/data/pedidos.json
+/data/clientes.json
+/data/*.tmp

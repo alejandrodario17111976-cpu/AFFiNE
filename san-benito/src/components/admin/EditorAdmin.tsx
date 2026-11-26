@@ -5,6 +5,7 @@ import Link from "next/link";
 import { descuento, formatearPrecio, urlMedio } from "@/lib/formato";
 import { FUENTES_TEXTO, FUENTES_TITULOS, familiaTexto, familiaTitulos } from "@/lib/fuentes";
 import { estiloMarca } from "@/lib/marca";
+import { PanelClientes, PanelPedidos, type AccionesPedidos } from "./Pedidos";
 import { APARIENCIA_INICIAL } from "@/lib/validar";
 import {
   COLORES_CATEGORIA,
@@ -35,10 +36,11 @@ export interface Acciones {
   guardarTienda: (clave: string, datos: unknown) => Promise<Resultado>;
   subirImagen?: (clave: string, carpeta: Carpeta, formulario: FormData) => Promise<ResultadoImagen>;
   borrarImagen?: (clave: string, carpeta: Carpeta, archivo: string) => Promise<Resultado>;
+  pedidos?: AccionesPedidos;
 }
 
 type Fila = { uid: string; p: Producto };
-type Pestaña = "productos" | "afiches" | "pasillos" | "textos" | "apariencia" | "negocio";
+type Pestaña = "pedidos" | "clientes" | "productos" | "afiches" | "pasillos" | "textos" | "apariencia" | "negocio";
 
 /**
  * Achica la foto en el teléfono antes de subirla (más rápido con datos móviles)
@@ -195,10 +197,7 @@ function Acceso({
           else setError("La contraseña no es correcta");
         }}
       >
-        <div>
-          <h1 className="font-titulo text-5xl font-semibold tracking-[0.2em] text-lapis-hondo">AGL</h1>
-          <p className="mt-1 text-sm text-tinta-2">Precios, productos, fotos y textos del sitio</p>
-        </div>
+        <h1 className="font-titulo text-5xl font-semibold tracking-[0.2em] text-lapis-hondo">AGL</h1>
         <Campo etiqueta="Contraseña">
           <input
             type="password"
@@ -257,7 +256,7 @@ export default function EditorAdmin({
   const [filas, setFilas] = useState<Fila[]>(() => inicial.productos.map((p) => ({ uid: nuevoUid(), p })));
   const [sucio, setSucio] = useState(false);
   const [estado, setEstado] = useState<{ tipo: "ok" | "error" | "guardando"; texto: string } | null>(null);
-  const [pestaña, setPestaña] = useState<Pestaña>("productos");
+  const [pestaña, setPestaña] = useState<Pestaña>(acciones.pedidos ? "pedidos" : "productos");
   const [filtro, setFiltro] = useState("todas");
   const [busqueda, setBusqueda] = useState("");
   const [porcentaje, setPorcentaje] = useState("");
@@ -439,8 +438,10 @@ export default function EditorAdmin({
   const precio = (v: number) => formatearPrecio(v, negocio);
 
   const pestañas: { id: Pestaña; nombre: string }[] = [
+    ...(acciones.pedidos ? [{ id: "pedidos" as const, nombre: "Pedidos" }] : []),
     { id: "productos", nombre: "Productos y precios" },
     { id: "afiches", nombre: "Afiches" },
+    ...(acciones.pedidos ? [{ id: "clientes" as const, nombre: "Clientes" }] : []),
     { id: "pasillos", nombre: "Pasillos" },
     { id: "textos", nombre: "Textos y secciones" },
     { id: "apariencia", nombre: "Colores y fuentes" },
@@ -784,6 +785,9 @@ export default function EditorAdmin({
             {visibles.length === 0 && <p className="mt-6 text-tinta-2">No hay productos con ese filtro</p>}
           </section>
         )}
+
+        {pestaña === "pedidos" && acciones.pedidos && <PanelPedidos clave={clave} acciones={acciones.pedidos} negocio={negocio} />}
+        {pestaña === "clientes" && acciones.pedidos && <PanelClientes clave={clave} acciones={acciones.pedidos} />}
 
         {pestaña === "afiches" && (
           <section>

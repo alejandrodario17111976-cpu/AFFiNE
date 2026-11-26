@@ -46,7 +46,27 @@ function LuzQueSigueAlPuntero() {
   );
 }
 
-export function LucesTienda({ dinamica = false }: { dinamica?: boolean }) {
+/** Linterna cálida que sigue al dedo o al mouse sobre la tarjeta del producto. */
+function LuzQueSigueALaTarjeta({ interaccion }: { interaccion: React.RefObject<Interaccion> }) {
+  const luz = useRef<THREE.PointLight>(null);
+  useFrame((_, delta) => {
+    const l = luz.current;
+    const i = interaccion.current;
+    if (!l || !i) return;
+    l.position.x = THREE.MathUtils.damp(l.position.x, i.hover ? i.x * 2.6 : 1.6, 5, delta);
+    l.position.y = THREE.MathUtils.damp(l.position.y, i.hover ? -i.y * 2.2 + 0.4 : 1.4, 5, delta);
+    l.intensity = THREE.MathUtils.damp(l.intensity, i.hover ? 22 : 6, 4, delta);
+  });
+  return <pointLight ref={luz} position={[1.6, 1.4, 2.6]} intensity={6} distance={9} decay={1.6} color="#FFE2A8" />;
+}
+
+export function LucesTienda({
+  dinamica = false,
+  interaccion,
+}: {
+  dinamica?: boolean;
+  interaccion?: React.RefObject<Interaccion>;
+}) {
   const gl = useThree((s) => s.gl);
   const entorno = useMemo(() => entornoDe(gl), [gl]);
 
@@ -57,6 +77,7 @@ export function LucesTienda({ dinamica = false }: { dinamica?: boolean }) {
       <directionalLight position={[3, 5, 4]} intensity={2.4} color="#FFF1DA" />
       <directionalLight position={[-5, 2.5, -3]} intensity={1.1} color="#B9CBEA" />
       {dinamica && <LuzQueSigueAlPuntero />}
+      {interaccion && <LuzQueSigueALaTarjeta interaccion={interaccion} />}
     </>
   );
 }

@@ -12,7 +12,10 @@ import {
 } from "@animate-ui/react/utils/motion";
 import { cambiarSonido, sonar, useSonidoActivado } from "@/lib/sonidos";
 import { useCarrito } from "./carrito";
-import { IconoCandado, IconoCerrar, IconoMenu, IconoSilencio, IconoSonido, IconoTicket } from "./Iconos";
+import { useGolpeTicket } from "./Efectos";
+import { VentanaMisDatos } from "./MisDatos";
+import { useMiCliente } from "@/lib/mis-datos";
+import { IconoCandado, IconoCerrar, IconoMenu, IconoPersona, IconoSilencio, IconoSonido, IconoTicket } from "./Iconos";
 
 export interface Enlace {
   href: string;
@@ -34,6 +37,9 @@ export default function Encabezado({
 }) {
   const { unidades, abrir, negocio } = useCarrito();
   const [menu, setMenu] = useState(false);
+  const [misDatos, setMisDatos] = useState(false);
+  const golpe = useGolpeTicket();
+  const cliente = useMiCliente();
   const sonido = useSonidoActivado();
   const reducir = useShouldReduceMotion();
   const enMenu = useTempoTransition(motionTransition.menu);
@@ -79,8 +85,12 @@ export default function Encabezado({
         </nav>
         <div ref={panel} className="relative ml-auto flex items-center gap-2">
           <motion.button
+            key={`ticket-${golpe}`}
             type="button"
             onClick={abrir}
+            data-destino-ticket
+            initial={golpe > 0 && !reducir ? { scale: 1.12 } : false}
+            animate={{ scale: 1, transition: pop }}
             whileTap={{ scale: scale.press, transition: presion }}
             className="boton-oro flex h-10 cursor-pointer items-center gap-2 rounded-[10px] px-4 text-sm font-medium text-tinta"
             aria-label={`Abrir ticket, ${unidades} ${unidades === 1 ? "producto" : "productos"}`}
@@ -135,6 +145,18 @@ export default function Encabezado({
                 </div>
                 <button
                   type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenu(false);
+                    setMisDatos(true);
+                  }}
+                  className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-[15px] text-marfil/85 hover:bg-marfil/5"
+                >
+                  <IconoPersona className="text-lg text-oro" />
+                  {cliente ? `Mis datos · ${cliente.nombre}` : "Mis datos"}
+                </button>
+                <button
+                  type="button"
                   role="menuitemcheckbox"
                   aria-checked={sonido}
                   onClick={() => cambiarSonido(!sonido)}
@@ -172,6 +194,7 @@ export default function Encabezado({
           </AnimatePresence>
         </div>
       </div>
+      <VentanaMisDatos abierta={misDatos} cerrar={() => setMisDatos(false)} />
     </header>
   );
 }

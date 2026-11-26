@@ -6,28 +6,53 @@ import datos from "../data/tienda.json";
 
 const tienda = normalizarTienda(datos);
 
-/** En la vista previa no hay servidor donde guardar: AGL explica dónde funciona. */
-function AvisoAgl({ cerrar }: { cerrar: () => void }) {
+/** AGL en la vista previa: pide la contraseña; sin servidor no hay dónde guardar, y lo dice al intentar entrar. */
+function AccesoAgl({ cerrar }: { cerrar: () => void }) {
+  const [clave, setClave] = useState("");
+  const [intento, setIntento] = useState(false);
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-lapis-noche/70 p-4 backdrop-blur-sm"
-      onClick={cerrar}
+      className="grano fixed inset-0 z-[90] flex items-center justify-center bg-lapis-hondo p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="titulo-agl"
     >
-      <div className="w-full max-w-sm rounded-2xl bg-papel p-6 text-tinta shadow-flotante" onClick={(e) => e.stopPropagation()}>
+      <form
+        className="flex w-full max-w-sm flex-col gap-4 rounded-2xl bg-papel p-6 text-tinta shadow-flotante"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setIntento(true);
+        }}
+      >
         <h2 id="titulo-agl" className="font-titulo text-5xl font-semibold tracking-[0.2em] text-lapis-hondo">
           AGL
         </h2>
-        <p className="mt-3 leading-relaxed text-tinta-2">
-          Esta es una vista previa sin servidor. En el sitio publicado, AGL pide la contraseña y desde ahí cambiás precios,
-          productos, fotos, afiches y textos.
-        </p>
-        <button type="button" onClick={cerrar} className="boton-oro mt-6 h-11 w-full cursor-pointer rounded-[10px] font-medium">
-          Entendido
+        <label className="flex flex-col gap-1.5">
+          <span className="text-xs text-tinta-2">Contraseña</span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={clave}
+            onChange={(e) => {
+              setClave(e.target.value);
+              setIntento(false);
+            }}
+            className="h-10 w-full rounded-lg border border-tinta/15 bg-papel px-3 text-sm outline-none focus:border-oro"
+            required
+          />
+        </label>
+        {intento && (
+          <p role="alert" className="rounded-lg bg-crema px-3 py-2 text-sm text-tinta-2">
+            Esta copia no tiene servidor. Entrá a AGL desde el sitio publicado del negocio.
+          </p>
+        )}
+        <button type="submit" disabled={!clave} className="h-10 cursor-pointer rounded-[10px] bg-lapis-hondo text-sm font-medium text-marfil disabled:opacity-40">
+          Entrar
         </button>
-      </div>
+        <button type="button" onClick={cerrar} className="cursor-pointer text-left text-sm text-tinta-2 underline-offset-4 hover:underline">
+          Volver al sitio
+        </button>
+      </form>
     </div>
   );
 }
@@ -39,7 +64,7 @@ function VistaPrevia() {
       <Tienda tienda={tienda} vistaPrevia onAgl={() => setAgl(true)} />
       {agl && (
         <div className="marca">
-          <AvisoAgl cerrar={() => setAgl(false)} />
+          <AccesoAgl cerrar={() => setAgl(false)} />
         </div>
       )}
     </>

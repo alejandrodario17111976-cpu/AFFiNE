@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { PerspectiveCamera, View } from "@react-three/drei";
 import { scale, spring, transition as motionTransition, useTempoTransition } from "@animate-ui/react/utils/motion";
 import type { Categoria, Producto } from "@/lib/tipos";
-import { descuento } from "@/lib/formato";
+import { descuento, urlMedio } from "@/lib/formato";
+import { lanzarVuelo } from "./Efectos";
 import { LucesTienda, Producto3D, SombraSuelo } from "@/components/escena/Producto3D";
 import type { Interaccion } from "@/components/escena/compartido";
 import { useCarrito } from "./carrito";
@@ -32,7 +33,7 @@ export function Vista3D({ producto, className = "" }: { producto: Producto; clas
     >
       <View className="absolute inset-0">
         <PerspectiveCamera makeDefault position={[0, 0.3, 5.8]} fov={34} />
-        <LucesTienda />
+        <LucesTienda interaccion={interaccion} />
         <Producto3D producto={producto} interaccion={interaccion} />
         <SombraSuelo y={-1.3} />
       </View>
@@ -45,7 +46,7 @@ export function EtiquetaPrecio({ producto, grande = false }: { producto: Product
   const { precio } = useCarrito();
   const off = descuento(producto);
   return (
-    <div className="etiqueta-precio inline-flex flex-col rounded-md px-3 pt-1.5 pb-2">
+    <div className="etiqueta-precio destello inline-flex flex-col overflow-hidden rounded-md px-3 pt-1.5 pb-2">
       {producto.precioAnterior && off > 0 && (
         <span className="text-xs text-tinta-3 tabular-nums line-through decoration-carmesi">
           {precio(producto.precioAnterior)}
@@ -88,7 +89,7 @@ export default function TarjetaProducto({ producto, categoria }: { producto: Pro
   const cambio = useTempoTransition(motionTransition.menu);
 
   return (
-    <article className="group relative flex h-full flex-col rounded-2xl border border-tinta/8 bg-papel p-2 shadow-suave transition-[transform,box-shadow] duration-300 ease-sb [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-flotante">
+    <article className="tarjeta-producto group relative flex h-full flex-col rounded-2xl border border-tinta/8 bg-papel p-2 shadow-suave transition-[transform,box-shadow] duration-300 ease-sb [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-flotante">
       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-[radial-gradient(120%_90%_at_50%_20%,var(--color-papel),var(--color-crema))]">
         <Vista3D producto={producto} className="h-full w-full" />
         <div className="absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
@@ -122,7 +123,10 @@ export default function TarjetaProducto({ producto, categoria }: { producto: Pro
                   <motion.button
                     key="agregar"
                     type="button"
-                    onClick={() => agregar(producto.id)}
+                    onClick={(e) => {
+                      lanzarVuelo(e.currentTarget.getBoundingClientRect(), producto.imagen ? urlMedio("imagenes", producto.imagen) : undefined);
+                      agregar(producto.id);
+                    }}
                     initial={{ opacity: 0, filter: "blur(2px)" }}
                     animate={{ opacity: 1, filter: "blur(0px)", transition: cambio }}
                     exit={{ opacity: 0, filter: "blur(2px)", transition: cambio }}

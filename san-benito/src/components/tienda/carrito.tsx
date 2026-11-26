@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import type { Negocio, Producto } from "@/lib/tipos";
+import type { Cliente, EstadoPedido, Negocio, Pedido, Producto } from "@/lib/tipos";
+import { dniConPuntos } from "@/lib/clientes";
 import { formatearPrecio, precioPara } from "@/lib/formato";
 import { sonar } from "@/lib/sonidos";
 
@@ -15,6 +16,15 @@ export interface LineaTicket {
   ahorro: number;
 }
 
+/** Cómo se registran los pedidos en el negocio (solo cuando el sitio corre en su servidor). */
+export interface ServicioPedidos {
+  enviar: (entrada: {
+    cliente: Cliente;
+    items: { id: string; cantidad: number }[];
+  }) => Promise<{ ok: true; valor: Pedido } | { ok: false; error: string }>;
+  consultar: (numero: string, dni: string) => Promise<{ estado: EstadoPedido; listoEn: string | null } | null>;
+}
+
 interface ValorCarrito {
   lineas: LineaTicket[];
   total: number;
@@ -23,12 +33,13 @@ interface ValorCarrito {
   cantidadDe: (id: string) => number;
   agregar: (id: string) => void;
   quitar: (id: string) => void;
-  vaciar: () => void;
+  vaciar: (conSonido?: boolean) => void;
   abierto: boolean;
   abrir: () => void;
   cerrar: () => void;
   precio: (valor: number) => string;
   negocio: Negocio;
+  servicio: ServicioPedidos | null;
 }
 
 const Contexto = createContext<ValorCarrito | null>(null);
@@ -95,10 +106,12 @@ export function useCarrito() {
 export function CarritoProvider({
   productos,
   negocio,
+  servicio = null,
   children,
 }: {
   productos: Producto[];
   negocio: Negocio;
+  servicio?: ServicioPedidos | null;
   children: ReactNode;
 }) {
   const cantidades = useSyncExternalStore(suscribir, leer, () => VACIO);
@@ -142,8 +155,8 @@ export function CarritoProvider({
       sonar("quitar");
       cambiar(id, -1);
     },
-    vaciar: () => {
-      sonar("quitar");
+    vaciar: (conSonido = true) => {
+      if (conSonido) sonar("quitar");
       escribir(VACIO);
     },
     abierto,
@@ -157,12 +170,19 @@ export function CarritoProvider({
     },
     precio,
     negocio,
+    servicio,
   };
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;
 }
 
-export function textoPedido(lineas: LineaTicket[], total: number, negocio: Negocio, numero: string) {
+export function textoPedido(
+  lineas: LineaTicket[],
+  total: number,
+  negocio: Negocio,
+  numero: string,
+  cliente: Cliente | null,
+) {
   const f = (v: number) => formatearPrecio(v, negocio);
   const filas = lineas.map(
     (l) =>
@@ -175,5 +195,8 @@ export function textoPedido(lineas: LineaTicket[], total: number, negocio: Negoc
     ...filas,
     "",
     `Total: ${f(total)}`,
+    ...(cliente
+      ? ["", `Cliente: ${cliente.nombre} ${cliente.apellido}`, `DNI: ${dniConPuntos(cliente.dni)}`, `Celular: ${cliente.telefono}`]
+      : []),
   ].join("\n");
 }

@@ -5,8 +5,11 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import { updateTag } from "next/cache";
 import sharp from "sharp";
+import { asegurarDatos, rutaDatos } from "@/lib/almacen";
 import { ETIQUETA_CACHE, RUTA_TIENDA } from "@/lib/tienda";
 import { ARCHIVO_IMAGEN, crearId, ErrorDatos, normalizarTienda } from "@/lib/validar";
+import * as pedidosServidor from "@/lib/pedidos";
+import { ESTADOS_PEDIDO, type EstadoPedido } from "@/lib/tipos";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
 export type ResultadoImagen = { ok: true; archivo: string } | { ok: false; error: string };
@@ -50,6 +53,7 @@ export async function guardarTienda(clave: string, datos: unknown): Promise<Resu
   }
 
   try {
+    await asegurarDatos();
     const temporal = `${RUTA_TIENDA}.tmp`;
     await writeFile(temporal, `${JSON.stringify(tienda, null, 2)}\n`, "utf8");
     await rename(temporal, RUTA_TIENDA);
@@ -91,7 +95,8 @@ export async function subirImagen(clave: string, carpeta: "imagenes" | "afiches"
       .toBuffer();
     const final = `${crearId(nombre).slice(0, 60)}-${randomBytes(3).toString("hex")}.webp`;
     if (!ARCHIVO_IMAGEN.test(final)) return { ok: false, error: "No se pudo nombrar la imagen." };
-    const dir = path.join(process.cwd(), "data", carpeta);
+    await asegurarDatos();
+    const dir = rutaDatos(carpeta);
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, final), datos);
     return { ok: true, archivo: final };
@@ -107,9 +112,27 @@ export async function borrarImagen(clave: string, carpeta: "imagenes" | "afiches
     return { ok: false, error: "Imagen inválida." };
   }
   try {
-    await unlink(path.join(process.cwd(), "data", carpeta, archivo));
+    await unlink(rutaDatos(carpeta, archivo));
   } catch {
     /* ya no estaba */
   }
   return { ok: true };
+}
+
+/* ---------- Pedidos y clientes (solo AGL) ---------- */
+
+export async function verPedidos(clave: string) {
+  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  return pedidosServidor.listarPedidos();
+}
+
+export async function cambiarEstadoPedido(clave: string, numero: string, estado: EstadoPedido) {
+  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  if (!ESTADOS_PEDIDO.includes(estado)) return null;
+  return pedidosServidor.cambiarEstado(String(numero), estado);
+}
+
+export async function verClientes(clave: string) {
+  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  return pedidosServidor.listarClientes();
 }

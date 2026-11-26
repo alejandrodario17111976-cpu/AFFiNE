@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { NextRequest } from "next/server";
+import { asegurarDatos, rutaDatos } from "@/lib/almacen";
 import { ARCHIVO_IMAGEN } from "@/lib/validar";
 
 /**
@@ -20,7 +20,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/medios/[carpeta
   const dir = CARPETAS[carpeta as keyof typeof CARPETAS];
   if (!dir || !ARCHIVO_IMAGEN.test(archivo)) return new Response("No encontrado", { status: 404 });
   try {
-    const datos = await readFile(path.join(process.cwd(), "data", dir, archivo));
+    await asegurarDatos();
+    const datos = await readFile(rutaDatos(dir, archivo));
     return new Response(new Uint8Array(datos), {
       headers: {
         "Content-Type": TIPOS[archivo.split(".").pop() ?? ""] ?? "application/octet-stream",

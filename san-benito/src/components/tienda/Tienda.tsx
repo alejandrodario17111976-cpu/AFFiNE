@@ -8,7 +8,9 @@ import { estiloMarca, marca3D, ProveedorMarca } from "@/lib/marca";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { precargarSonidos } from "@/lib/sonidos";
 import Escena3D from "@/components/escena/Escena3D";
-import { CarritoProvider } from "./carrito";
+import { CarritoProvider, type ServicioPedidos } from "./carrito";
+import { CapaEfectos } from "./Efectos";
+import EstadoMiPedido from "./EstadoMiPedido";
 import Encabezado, { type Enlace } from "./Encabezado";
 import Portada from "./Portada";
 import Gondola from "./Gondola";
@@ -40,9 +42,12 @@ export default function Tienda({
   tienda,
   vistaPrevia = false,
   onAgl,
+  servicio = null,
 }: {
   tienda: DatosTienda;
   vistaPrevia?: boolean;
+  /** Registro de pedidos en el servidor (no existe en la vista previa). */
+  servicio?: ServicioPedidos | null;
   /** En la vista previa, AGL abre el panel dentro de la misma página. */
   onAgl?: () => void;
 }) {
@@ -89,6 +94,14 @@ export default function Tienda({
           });
         });
       });
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        ScrollTrigger.batch(".tarjeta-producto", {
+          start: "top 92%",
+          once: true,
+          onEnter: (lote) =>
+            gsap.from(lote, { y: 28, rotateX: 6, transformPerspective: 900, duration: 0.8, ease: "expo.out", stagger: 0.07 }),
+        });
+      });
       // Recalcular posiciones cuando cambia el alto de la góndola (filtros y búsqueda).
       const observador = new ResizeObserver(() => ScrollTrigger.refresh());
       const gondola = document.getElementById("productos");
@@ -104,7 +117,7 @@ export default function Tienda({
   return (
     <ReducedMotionConfig>
       <ProveedorMarca value={marca}>
-        <CarritoProvider productos={productos} negocio={negocio}>
+        <CarritoProvider productos={productos} negocio={negocio} servicio={servicio}>
           <div ref={raiz} className="marca relative bg-marfil font-texto text-tinta" style={estiloMarca(apariencia)}>
             <a
               href="#productos"
@@ -123,6 +136,8 @@ export default function Tienda({
             </main>
             <Pie tienda={tienda} vistaPrevia={vistaPrevia} />
             <Ticket />
+            <EstadoMiPedido />
+            <CapaEfectos />
             {fuentesListas && <Escena3D />}
           </div>
         </CarritoProvider>

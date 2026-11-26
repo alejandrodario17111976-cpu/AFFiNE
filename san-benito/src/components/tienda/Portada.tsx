@@ -4,7 +4,7 @@ import { useRef, useSyncExternalStore } from "react";
 import { View } from "@react-three/drei";
 import type { Tienda } from "@/lib/tipos";
 import { descuento } from "@/lib/formato";
-import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, ScrollTrigger, SplitText, useGSAP } from "@/lib/gsap";
 import EscenaPortada from "@/components/escena/EscenaPortada";
 import { scrollPortada } from "@/components/escena/compartido";
 import { IconoFlecha } from "./Iconos";
@@ -51,6 +51,17 @@ export default function Portada({
       });
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // "San Benito" entra letra por letra, cada una saliendo de su propia máscara
+        const titulo = SplitText.create(".portada-titulo", { type: "chars", mask: "chars" });
+        gsap.from(titulo.chars, {
+          yPercent: 110,
+          rotate: 6,
+          duration: 1,
+          ease: "expo.out",
+          stagger: 0.04,
+          delay: 0.1,
+        });
+        gsap.from(".portada-eslogan", { y: 18, opacity: 0, filter: "blur(8px)", duration: 0.9, ease: "power3.out", delay: 0.55 });
         gsap.from(".portada-entra", {
           y: 12,
           opacity: 0,
@@ -78,10 +89,10 @@ export default function Portada({
           <p className="portada-entra text-sm text-marfil/60 tabular-nums">
             {productos.length} productos · {conProductos.length} {conProductos.length === 1 ? "pasillo" : "pasillos"}
           </p>
-          <h1 className="portada-entra mt-4 font-titulo text-[clamp(4rem,10vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.015em]">
+          <h1 className="portada-titulo mt-4 font-titulo text-[clamp(4rem,10vw,9.5rem)] leading-[0.9] font-semibold tracking-[-0.015em]">
             {negocio.nombre}
           </h1>
-          <p className="portada-entra mt-3 font-titulo texto-oro text-[clamp(1.9rem,3.4vw,3rem)] leading-tight font-semibold">
+          <p className="portada-eslogan mt-3 font-titulo texto-oro text-[clamp(1.9rem,3.4vw,3rem)] leading-tight font-semibold">
             {negocio.eslogan}
           </p>
           {textos.portadaTexto && (

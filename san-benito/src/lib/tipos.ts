@@ -143,3 +143,46 @@ export interface Tienda {
   productos: Producto[];
   afiches: Afiche[];
 }
+
+/* ---------- Pedidos y clientes ---------- */
+
+export interface Cliente {
+  nombre: string;
+  apellido: string;
+  /** Solo dígitos, 7 u 8. */
+  dni: string;
+  /** Tal como lo escribió el cliente (código de área y número). */
+  telefono: string;
+}
+
+export interface LineaPedido {
+  id: string;
+  nombre: string;
+  presentacion: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  ahorro: number;
+}
+
+export const ESTADOS_PEDIDO = ["pendiente", "listo", "entregado"] as const;
+export type EstadoPedido = (typeof ESTADOS_PEDIDO)[number];
+
+export interface Pedido {
+  numero: string;
+  /** Fecha y hora ISO de cuando llegó. */
+  creado: string;
+  estado: EstadoPedido;
+  listoEn: string | null;
+  entregadoEn: string | null;
+  cliente: Cliente;
+  lineas: LineaPedido[];
+  total: number;
+  ahorro: number;
+}
+
+export interface ClienteRegistrado extends Cliente {
+  creado: string;
+  actualizado: string;
+  pedidos: number;
+}

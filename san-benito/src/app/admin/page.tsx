@@ -3,7 +3,15 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { getTienda } from "@/lib/tienda";
 import EditorAdmin, { type ModoAcceso } from "@/components/admin/EditorAdmin";
-import { borrarImagen, guardarTienda, subirImagen, verificarClave } from "./acciones";
+import {
+  borrarImagen,
+  cambiarEstadoPedido,
+  guardarTienda,
+  subirImagen,
+  verClientes,
+  verPedidos,
+  verificarClave,
+} from "./acciones";
 
 export const metadata: Metadata = {
   title: "AGL",
@@ -22,7 +30,13 @@ async function Panel() {
       inicial={tienda}
       modo={modo}
       claveLocal={claveLocal}
-      acciones={{ guardarTienda, verificarClave, subirImagen, borrarImagen }}
+      acciones={{
+        guardarTienda,
+        verificarClave,
+        subirImagen,
+        borrarImagen,
+        pedidos: { verPedidos, cambiarEstadoPedido, verClientes },
+      }}
     />
   );
 }

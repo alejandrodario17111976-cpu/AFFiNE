@@ -137,3 +137,16 @@ export const IconoRed = (p: P) => (
     <path d="M8.3 10.8l7.4-3.6M8.3 13.2l7.4 3.6" />
   </Base>
 );
+
+export const IconoPersona = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </Base>
+);
+
+export const IconoCheck = (p: P) => (
+  <Base {...p}>
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
+  </Base>
+);

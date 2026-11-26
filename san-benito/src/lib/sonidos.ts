@@ -6,7 +6,18 @@ import { useSyncExternalStore } from "react";
  * Efectos de sonido del sitio (hechos con earshot, sin licencias de por medio).
  * Se decodifican una sola vez con Web Audio para que suenen al instante.
  */
-export type Sonido = "agregar" | "quitar" | "ticket-abrir" | "ticket-cerrar" | "pedido" | "menu";
+export type Sonido =
+  | "agregar"
+  | "quitar"
+  | "ticket-abrir"
+  | "ticket-cerrar"
+  | "pedido"
+  | "menu"
+  | "listo"
+  | "nuevo"
+  | "impresion"
+  | "registro"
+  | "error";
 
 const VOLUMEN: Record<Sonido, number> = {
   agregar: 0.55,
@@ -15,6 +26,11 @@ const VOLUMEN: Record<Sonido, number> = {
   "ticket-cerrar": 0.5,
   pedido: 0.45,
   menu: 0.35,
+  listo: 0.6,
+  nuevo: 0.55,
+  impresion: 0.32,
+  registro: 0.5,
+  error: 0.45,
 };
 
 const CLAVE = "san-benito-sonido";

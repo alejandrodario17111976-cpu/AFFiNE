@@ -212,3 +212,83 @@ input[type="search"]::-webkit-search-cancel-button {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ---------- View Transitions (panel AGL): pedidos que entran, salen y cambian de estado ---------- */
+:root {
+  --duracion-salida: 150ms;
+  --duracion-entrada: 260ms;
+  --duracion-movimiento: 420ms;
+}
+@keyframes vt-fundido {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes vt-sube {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+::view-transition-old(.vt-sale) {
+  animation: var(--duracion-salida) ease-in both vt-fundido reverse;
+}
+::view-transition-new(.vt-entra) {
+  animation:
+    var(--duracion-entrada) cubic-bezier(0.22, 1, 0.36, 1) var(--duracion-salida) both vt-fundido,
+    var(--duracion-movimiento) cubic-bezier(0.22, 1, 0.36, 1) both vt-sube;
+}
+::view-transition-group(.vt-mueve) {
+  animation-duration: var(--duracion-movimiento);
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* La raíz no se congela: lo que no tiene transición propia sigue vivo */
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Destello dorado que recorre la etiqueta de precio al pasar el dedo o el mouse */
+.destello::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto -40% -60%;
+  width: 45%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--sb-acento) 35%, white 40%), transparent);
+  transform: translateX(0) skewX(-18deg);
+  opacity: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .destello::after {
+    animation: destello 900ms var(--curva) forwards;
+  }
+}
+@keyframes destello {
+  0% {
+    opacity: 0;
+    transform: translateX(0) skewX(-18deg);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(420%) skewX(-18deg);
+  }
+}

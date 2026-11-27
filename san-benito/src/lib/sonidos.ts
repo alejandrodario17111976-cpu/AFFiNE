@@ -17,7 +17,10 @@ export type Sonido =
   | "nuevo"
   | "impresion"
   | "registro"
-  | "error";
+  | "error"
+  | "pestana"
+  | "vista"
+  | "mas";
 
 const VOLUMEN: Record<Sonido, number> = {
   agregar: 0.55,
@@ -31,6 +34,9 @@ const VOLUMEN: Record<Sonido, number> = {
   impresion: 0.32,
   registro: 0.5,
   error: 0.45,
+  pestana: 0.4,
+  vista: 0.35,
+  mas: 0.4,
 };
 
 const CLAVE = "san-benito-sonido";

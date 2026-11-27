@@ -96,6 +96,18 @@ footer[id] {
   outline-offset: 3px;
 }
 
+/* Scroll suave (Lenis) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
 input[type="search"]::-webkit-search-cancel-button {
   display: none;
 }

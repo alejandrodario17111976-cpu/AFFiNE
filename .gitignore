@@ -101,3 +101,13 @@ storageState.json
 /.playwright-browsers/
 **/.vitest-attachments/
 /blocksuite/framework/std/src/__tests__/gfx/__screenshots__/
+
+# Videos y demos de algunos skills: pesan ~100 MB y no hacen falta para usarlos
+.claude/skills/ffmpeg-skill/demos/
+.claude/skills/ffmpeg-skill/site/
+.claude/skills/ffmpeg-skill/assets/*.gif
+.claude/skills/**/*.mp4
+.claude/skills/**/*.mov
+.claude/skills/ffmpeg-skill/docs/demos/
+.claude/skills/ffmpeg-skill/tests/
+.claude/skills/ffmpeg-skill/evals/

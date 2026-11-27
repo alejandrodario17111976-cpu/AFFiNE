@@ -228,6 +228,12 @@ function Acceso({
 
 /* ---------- Editor ---------- */
 
+const sinAcentos = (s: string) =>
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
 export default function EditorAdmin({
   inicial,
   modo,
@@ -269,11 +275,15 @@ export default function EditorAdmin({
   }, [sucio]);
 
   const visibles = useMemo(() => {
-    const q = busqueda.trim().toLowerCase();
+    const q = sinAcentos(busqueda.trim());
     return filas.filter(
-      (f) => (filtro === "todas" || f.p.categoria === filtro) && (!q || f.p.nombre.toLowerCase().includes(q)),
+      (f) =>
+        (filtro === "todas" || f.p.categoria === filtro) &&
+        (!q || sinAcentos(`${f.p.nombre} ${f.p.presentacion}`).includes(q)),
     );
   }, [filas, filtro, busqueda]);
+  // Con cientos de productos se muestran de a 30 para que el panel siga ágil en el celular
+  const [tope, setTope] = useState(30);
 
   if (modo === "sin-configurar") {
     return (
@@ -326,6 +336,8 @@ export default function EditorAdmin({
       imagen: "",
       precioAnterior: null,
       disponible: true,
+      visible: true,
+      fotoIlustrativa: false,
       destacado: false,
       envase: "caja",
       color: apariencia.colorPrincipal,
@@ -515,7 +527,14 @@ export default function EditorAdmin({
 
             <Tarjeta className="grid gap-3 md:grid-cols-[1fr_1fr_auto_auto] md:items-end">
               <Campo etiqueta="Pasillo">
-                <select value={filtro} onChange={(e) => setFiltro(e.target.value)} className={claseCampo}>
+                <select
+                  value={filtro}
+                  onChange={(e) => {
+                    setFiltro(e.target.value);
+                    setTope(30);
+                  }}
+                  className={claseCampo}
+                >
                   <option value="todas">Todos</option>
                   {categorias.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -525,7 +544,16 @@ export default function EditorAdmin({
                 </select>
               </Campo>
               <Campo etiqueta="Buscar">
-                <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} className={claseCampo} />
+                <input
+                  type="search"
+                  value={busqueda}
+                  onChange={(e) => {
+                    setBusqueda(e.target.value);
+                    setTope(30);
+                  }}
+                  placeholder="Nombre o presentación"
+                  className={claseCampo}
+                />
               </Campo>
               <div className="flex items-end gap-2">
                 <Campo etiqueta={`Cambiar precios de ${visibles.length} productos (%)`} className="w-56">
@@ -545,7 +573,7 @@ export default function EditorAdmin({
             </Tarjeta>
 
             <ul className="mt-4 flex flex-col gap-3">
-              {visibles.map(({ uid, p }) => {
+              {visibles.slice(0, tope).map(({ uid, p }) => {
                 const off = descuento(p);
                 const conContenido = p.envase === "frasco" || p.envase === "botella";
                 return (
@@ -720,6 +748,26 @@ export default function EditorAdmin({
                           />
                           En la portada
                         </label>
+                        <label className="flex h-10 items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={p.visible}
+                            onChange={(e) => cambiarProducto(uid, { visible: e.target.checked })}
+                            className="size-4 accent-[var(--sb-principal)]"
+                          />
+                          Mostrar en el sitio
+                        </label>
+                        {p.imagen && (
+                          <label className="flex h-10 items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              checked={p.fotoIlustrativa}
+                              onChange={(e) => cambiarProducto(uid, { fotoIlustrativa: e.target.checked })}
+                              className="size-4 accent-[var(--sb-principal)]"
+                            />
+                            Foto ilustrativa
+                          </label>
+                        )}
                         <Campo etiqueta="Envase 3D" className="w-48">
                           <select
                             value={p.envase}
@@ -782,6 +830,13 @@ export default function EditorAdmin({
                 );
               })}
             </ul>
+            {visibles.length > tope && (
+              <div className="mt-4 flex justify-center">
+                <Boton variante="oscuro" onClick={() => setTope((t) => t + 30)}>
+                  Mostrar más ({visibles.length - tope} restantes)
+                </Boton>
+              </div>
+            )}
             {visibles.length === 0 && <p className="mt-6 text-tinta-2">No hay productos con ese filtro</p>}
           </section>
         )}

@@ -44,6 +44,10 @@ export interface Producto {
   /** Precio antes de la oferta. Si es mayor que `precio`, el producto aparece en Ofertas. */
   precioAnterior: number | null;
   disponible: boolean;
+  /** Si es falso, el producto queda guardado en AGL pero no aparece en el sitio ni se puede pedir. */
+  visible: boolean;
+  /** La foto es de una variante o marca parecida: el sitio avisa "Imagen ilustrativa". */
+  fotoIlustrativa: boolean;
   destacado: boolean;
   envase: Envase;
   /** Color principal de la etiqueta o del envase (hex). */

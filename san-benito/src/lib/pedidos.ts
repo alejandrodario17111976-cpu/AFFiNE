@@ -31,7 +31,7 @@ export async function crearPedido(entrada: Entrada): Promise<Respuesta<Pedido>> 
   for (const item of entrada.items as { id?: unknown; cantidad?: unknown }[]) {
     const producto = porId.get(String(item?.id ?? ""));
     const cantidad = Math.round(Number(item?.cantidad));
-    if (!producto || !producto.disponible) return { ok: false, error: "Un producto del ticket ya no está disponible. Revisá el ticket" };
+    if (!producto || !producto.disponible || !producto.visible) return { ok: false, error: "Un producto del ticket ya no está disponible. Revisá el ticket" };
     if (!Number.isFinite(cantidad) || cantidad < 1 || cantidad > 99) return { ok: false, error: "Revisá las cantidades del ticket" };
     // Los precios salen siempre de la tienda, nunca de lo que manda el navegador
     const subtotal = precioPara(producto, cantidad);

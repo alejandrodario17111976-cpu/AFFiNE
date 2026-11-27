@@ -91,7 +91,7 @@ export function crearId(nombre: string) {
   return (
     nombre
       .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "")
@@ -201,6 +201,8 @@ function normalizarProducto(v: unknown, i: number, categorias: Set<string>): Pro
     imagen,
     precioAnterior: anterior,
     disponible: p.disponible !== false,
+    visible: p.visible !== false,
+    fotoIlustrativa: p.fotoIlustrativa === true,
     destacado: p.destacado === true,
     envase,
     color: color(p.color, `El color de "${nombre}"`),

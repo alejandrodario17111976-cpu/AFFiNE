@@ -1,11 +1,12 @@
 # San Benito — Tu mejor elección
 
-Sitio web de San Benito (Las Catitas y La Dormida): productos reales en 3D sobre un mostrador giratorio, góndola con buscador y filtros, ofertas, afiches de promociones, pasillos y un ticket de papel térmico que arma el pedido para enviarlo por WhatsApp.
+Sitio web de San Benito (Las Catitas y La Dormida): unos 180 productos reales en 3D, mostrador giratorio, góndola con 15 pasillos, buscador y vista en tarjetas o en lista, ofertas, afiches de promociones y un ticket de papel térmico que arma el pedido para enviarlo al negocio.
 
 - Colores: azul lapislázuli (con textura de piedra y pirita), oro metálico y carmesí, sobre marfil.
 - Tipografías: Cormorant Garamond (títulos), Jost (texto) y Courier Prime (ticket).
 - Animaciones con Animate UI (Motion), GSAP ScrollTrigger y React Three Fiber.
-- Sonidos hechos con earshot (sin licencias): agregar y quitar productos, abrir y cerrar el ticket, enviar el pedido. Se apagan desde el menú.
+- Sonidos hechos con earshot (sin licencias): agregar y quitar productos, abrir y cerrar el ticket, enviar el pedido, cambiar de pasillo y ver más productos. Se apagan desde el menú.
+- Scroll suave con inercia en computadoras (Lenis) y escena 3D sincronizada con el scroll. Con cientos de productos, cada tarjeta muestra la foto y arma su 3D recién cuando aparece en pantalla.
 
 ## Cómo verlo en tu computadora
 
@@ -67,6 +68,11 @@ Atajos:
 4. **Envase 3D**: elegí la forma (lata o frasco = cilindro que gira; bolsa = paquete abultado; foto recortada = plana).
 5. **Guardar cambios**.
 
+### Ocultar un producto o marcar la foto
+
+- **Mostrar en el sitio:** destildalo para que el producto quede guardado en AGL pero no aparezca en la página ni se pueda pedir. Así están los cigarrillos de la lista de cotillón: la Ley 26.687 prohíbe la publicidad de productos de tabaco por cualquier medio, así que decidí no mostrarlos. Si los querés publicar, consultalo antes.
+- **Foto ilustrativa:** la foto es de una variante o marca parecida a la que se vende; la tarjeta muestra "Imagen ilustrativa". Cuando subas tu propia foto, destildalo.
+
 ### Borrar un producto
 
 **Eliminar** en el producto y tocá de nuevo para confirmar. Después, **Guardar cambios**. La foto que ya no se usa se borra del servidor sola.
@@ -83,6 +89,8 @@ Pestaña **Afiches**: **Subir afiche**, ordenalos con **Antes/Después**, ponerl
 - **Datos del negocio:** sucursales (con enlace al mapa), teléfono, WhatsApp, horarios, Instagram, Facebook y TikTok. Lo que quede vacío no aparece en el sitio.
 
 Todo se guarda en `data/tienda.json`; las fotos en `data/imagenes/` y los afiches en `data/afiches/`.
+
+Las fotos de los productos de las listas de precios se buscaron en los catálogos de Carrefour, Jumbo, Día y ChangoMás y se recortaron sin fondo. Los productos sin foto (sueltos, fiambres por kilo, helados, panadería) se dibujan en 3D con una etiqueta con su nombre; podés subir la foto propia cuando quieras.
 
 ## Vista previa sin servidor
 

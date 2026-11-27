@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, Suspense, useMemo, useRef, type ReactNode } from "react";
+import { Component, Suspense, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, RoundedBox, useGLTF, useTexture } from "@react-three/drei";
 import * as THREE from "three";
@@ -443,9 +443,16 @@ function ajustarTextura(t: THREE.Texture) {
   t.anisotropy = 8;
 }
 
-function Recorte3D({ archivo, envase }: { archivo: string; envase: Envase }) {
+function Recorte3D({ archivo, envase, alListo }: { archivo: string; envase: Envase; alListo?: () => void }) {
   const textura = useTexture(urlMedio("imagenes", archivo));
   const forma = formaDe(envase);
+
+  // Ya cargó (si no, este componente seguiría suspendido). Al salir de pantalla se libera
+  // la textura de la placa de video; si vuelve a verse, three.js la sube de nuevo sola.
+  useEffect(() => {
+    alListo?.();
+    return () => textura.dispose();
+  }, [textura, alListo]);
 
   const { geometria, ancho, grosor } = useMemo(() => {
     ajustarTextura(textura);
@@ -466,22 +473,15 @@ function Recorte3D({ archivo, envase }: { archivo: string; envase: Envase }) {
     return { geometria: g, ancho: an, grosor: forma === "bolsa" ? 0.07 : 0.035 };
   }, [textura, forma]);
 
-  const brillo = forma === "plana" ? 0.6 : 0.38;
-  const capas = forma === "cilindro" ? [] : [-0.5, -0.25, 0, 0.25, 0.5].map((k) => k * grosor);
+  const brillo = forma === "plana" ? 0.6 : 0.34;
+  const capas = forma === "cilindro" ? [] : [-0.5, 0, 0.5].map((k) => k * grosor);
 
   return (
     <group>
       {/* Frente y dorso: la misma foto, cada una mirando hacia su lado */}
       {[0, Math.PI].map((giro) => (
         <mesh key={giro} geometry={geometria} rotation-y={giro} position-z={forma === "cilindro" ? 0 : giro ? -grosor / 2 : grosor / 2}>
-          <meshPhysicalMaterial
-            map={textura}
-            alphaTest={0.45}
-            roughness={brillo}
-            clearcoat={forma === "plana" ? 0 : 0.45}
-            clearcoatRoughness={0.35}
-            envMapIntensity={0.9}
-          />
+          <meshStandardMaterial map={textura} alphaTest={0.45} roughness={brillo} metalness={0.04} envMapIntensity={1.05} />
         </mesh>
       ))}
       {/* Canto: capas de la misma silueta, más oscuras, para que tenga espesor */}
@@ -500,11 +500,14 @@ export function Producto3D({
   calidad = "normal",
   interaccion,
   velocidad = 0.35,
+  alListo,
 }: {
   producto: Producto;
   calidad?: Calidad;
   interaccion?: React.RefObject<Interaccion>;
   velocidad?: number;
+  /** Se llama cuando la foto ya se ve en 3D (para ocultar la foto plana de abajo). */
+  alListo?: () => void;
 }) {
   const grupo = useRef<THREE.Group>(null);
   const quieto = useMemo(() => movimientoReducido(), []);
@@ -534,7 +537,7 @@ export function Producto3D({
       {producto.imagen && !producto.modelo ? (
         <SiFalla alternativa={procedural}>
           <Suspense fallback={null}>
-            <Recorte3D archivo={producto.imagen} envase={producto.envase} />
+            <Recorte3D archivo={producto.imagen} envase={producto.envase} alListo={alListo} />
           </Suspense>
         </SiFalla>
       ) : producto.modelo ? (

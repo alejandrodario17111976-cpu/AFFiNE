@@ -6,6 +6,7 @@ import { scale, spring, transition as motionTransition, useShouldReduceMotion, u
 import { validarCliente } from "@/lib/clientes";
 import { guardarMiCliente, useMiCliente } from "@/lib/mis-datos";
 import { sonar } from "@/lib/sonidos";
+import { useSinDesplazamiento } from "@/lib/desplazamiento";
 import type { Cliente } from "@/lib/tipos";
 import { IconoCerrar } from "./Iconos";
 
@@ -82,6 +83,7 @@ export function FormularioCliente({ alGuardar, textoBoton = "Guardar mis datos" 
 
 /** Ventana "Mis datos" que se abre desde el menú. */
 export function VentanaMisDatos({ abierta, cerrar }: { abierta: boolean; cerrar: () => void }) {
+  useSinDesplazamiento(abierta);
   const reducir = useShouldReduceMotion();
   const entrar = useTempoTransition(spring.dialog);
   const salir = useTempoTransition(motionTransition.dismiss);
@@ -96,6 +98,7 @@ export function VentanaMisDatos({ abierta, cerrar }: { abierta: boolean; cerrar:
     <AnimatePresence>
       {abierta && (
         <motion.div
+          data-lenis-prevent
           className="fixed inset-0 z-[70] flex items-end justify-center bg-lapis-noche/60 p-3 backdrop-blur-sm sm:items-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, transition: motionTransition.overlay }}

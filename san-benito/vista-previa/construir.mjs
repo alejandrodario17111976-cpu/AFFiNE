@@ -63,7 +63,7 @@ const familias = [
 const fuentes = `https://fonts.googleapis.com/css2?${familias.map((f) => `family=${f}`).join("&")}&display=swap`;
 writeFileSync(
   join(dist, "index.html"),
-  `<title>San Benito</title>
+  `<meta charset="utf-8">\n<title>San Benito</title>
 <link rel="stylesheet" href="${fuentes}">
 <link rel="stylesheet" href="estilos.css">
 <div id="raiz"></div>

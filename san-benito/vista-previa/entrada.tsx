@@ -4,7 +4,8 @@ import Tienda from "@/components/tienda/Tienda";
 import { normalizarTienda } from "@/lib/validar";
 import datos from "../data/tienda.json";
 
-const tienda = normalizarTienda(datos);
+const completa = normalizarTienda(datos);
+const tienda = { ...completa, productos: completa.productos.filter((p) => p.visible) };
 
 /** AGL en la vista previa: pide la contraseña; sin servidor no hay dónde guardar, y lo dice al intentar entrar. */
 function AccesoAgl({ cerrar }: { cerrar: () => void }) {

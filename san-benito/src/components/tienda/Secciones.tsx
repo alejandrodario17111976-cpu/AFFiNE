@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { scale, spring, transition as motionTransition, useShouldReduceMotion, useTempoTransition } from "@animate-ui/react/utils/motion";
 import type { Afiche, Tienda } from "@/lib/tipos";
 import { enlaceMapa, estaEnOferta, numeroPasillo, urlMedio } from "@/lib/formato";
+import { useSinDesplazamiento } from "@/lib/desplazamiento";
 import TarjetaProducto from "./TarjetaProducto";
 import { IconoCamara, IconoCerrar, IconoMensaje, IconoRed, IconoReloj, IconoTelefono, IconoUbicacion } from "./Iconos";
 
@@ -46,6 +47,7 @@ export function Ofertas({ tienda }: { tienda: Tienda }) {
 
 /** Afiche ampliado, para leerlo bien en el celular. */
 function AficheAmpliado({ afiche, cerrar }: { afiche: Afiche; cerrar: () => void }) {
+  useSinDesplazamiento();
   const reducir = useShouldReduceMotion();
   const entrar = useTempoTransition(spring.dialog);
   const salir = useTempoTransition(motionTransition.dismiss);
@@ -56,6 +58,7 @@ function AficheAmpliado({ afiche, cerrar }: { afiche: Afiche; cerrar: () => void
   }, [cerrar]);
   return (
     <motion.div
+      data-lenis-prevent
       className="fixed inset-0 z-[80] flex items-center justify-center bg-lapis-noche/80 p-4 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1, transition: motionTransition.overlay }}

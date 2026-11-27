@@ -14,6 +14,7 @@ import { dniConPuntos } from "@/lib/clientes";
 import { FUENTE_TICKET } from "@/lib/fuentes";
 import { guardarUltimoPedido, useMiCliente, useUltimoPedido } from "@/lib/mis-datos";
 import { sonar } from "@/lib/sonidos";
+import { useSinDesplazamiento } from "@/lib/desplazamiento";
 import type { Pedido } from "@/lib/tipos";
 import { textoPedido, useCarrito, type LineaTicket } from "./carrito";
 import { lanzarConfeti } from "./Efectos";
@@ -82,6 +83,7 @@ function desdeCarrito(l: LineaTicket): LineaVista {
 }
 
 function PanelTicket() {
+  useSinDesplazamiento();
   const { lineas, total, ahorro, unidades, cerrar, agregar, quitar, vaciar, precio, negocio, servicio } = useCarrito();
   const cliente = useMiCliente();
   const ultimo = useUltimoPedido();
@@ -209,6 +211,7 @@ function PanelTicket() {
         role="dialog"
         aria-modal="true"
         aria-label="Tu ticket"
+        data-lenis-prevent
         className="fixed top-0 right-0 z-[60] flex h-full w-full flex-col pt-[env(safe-area-inset-top,0px)] sm:w-[460px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type { ColorCategoria, Tienda } from "@/lib/tipos";
-import { numeroPasillo } from "@/lib/formato";
+import { numeroPasillo, urlMedio } from "@/lib/formato";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { Vista3D } from "./TarjetaProducto";
 import { useCarrito } from "./carrito";
@@ -44,7 +44,8 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
       const lista = tienda.productos.filter((p) => p.categoria === c.id);
       const disponibles = lista.filter((p) => p.disponible);
       const desde = disponibles.length ? Math.min(...disponibles.map((p) => p.precio)) : null;
-      const muestra = disponibles.find((p) => p.destacado) ?? disponibles[0] ?? lista[0];
+      const conFoto = disponibles.filter((p) => p.imagen);
+      const muestra = conFoto.find((p) => p.destacado) ?? conFoto[0] ?? disponibles[0] ?? lista[0];
       return { categoria: c, cantidad: lista.length, desde, muestra };
     })
     .filter((p) => p.cantidad > 0);
@@ -85,16 +86,50 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
           <p className="text-sm text-tinta-3 tabular-nums">{pasillos.length} pasillos</p>
         </div>
 
+        {/* Celular: grilla compacta, con la foto del producto que representa al pasillo */}
+        <ul className="grid grid-cols-2 gap-3 px-4 pb-20 md:hidden">
+          {pasillos.map(({ categoria, cantidad, desde, muestra }, i) => {
+            const e = ESTILO[categoria.color];
+            return (
+              <li key={categoria.id}>
+                <button
+                  type="button"
+                  onClick={() => irAPasillo(categoria.id)}
+                  className={`relative flex h-full min-h-44 w-full cursor-pointer flex-col overflow-hidden rounded-2xl p-3 text-left ${e.fondo} ${e.texto}`}
+                >
+                  <span className={`text-xs tabular-nums ${e.suave}`}>Pasillo {numeroPasillo(i)}</span>
+                  <span className="mt-1 font-titulo text-[1.6rem] leading-[1.05] [overflow-wrap:anywhere]">{categoria.nombre}</span>
+                  <span className={`mt-1 text-xs tabular-nums ${e.suave}`}>
+                    {cantidad} {cantidad === 1 ? "producto" : "productos"}
+                    {desde !== null && <> · desde {precio(desde)}</>}
+                  </span>
+                  {muestra?.imagen && (
+                    // eslint-disable-next-line @next/next/no-img-element -- foto recortada servida desde /medios
+                    <img
+                      src={urlMedio("imagenes", muestra.imagen)}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="mt-auto ml-auto h-20 w-24 object-contain object-right-bottom drop-shadow-[0_8px_10px_rgba(0,0,0,0.25)]"
+                    />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {/* Computadora: recorrido horizontal con el producto en 3D */}
         {pasillos.map(({ categoria, cantidad, desde, muestra }, i) => {
           const e = ESTILO[categoria.color];
           return (
             <article
               key={categoria.id}
-              className={`relative grid md:h-full md:w-[72vw] md:grid-cols-[1fr_1.1fr] lg:w-[60vw] ${e.fondo} ${e.texto}`}
+              className={`relative hidden md:grid md:h-full md:w-[52vw] md:grid-cols-[1fr_1fr] lg:w-[42vw] ${e.fondo} ${e.texto}`}
             >
-              <div className="relative z-20 flex flex-col justify-center gap-6 px-4 pt-16 pb-8 md:px-12 md:pt-[calc(var(--alto-encabezado)+2rem)] md:pb-16">
+              <div className="relative z-20 flex flex-col justify-center gap-6 px-10 pt-[calc(var(--alto-encabezado)+2rem)] pb-16">
                 <span className={`text-sm tabular-nums ${e.suave}`}>Pasillo {numeroPasillo(i)}</span>
-                <h3 className="font-titulo text-[clamp(2.75rem,5.2vw,5.25rem)] leading-[1] tracking-[-0.015em] [overflow-wrap:break-word] [text-wrap:balance]">
+                <h3 className="font-titulo text-[clamp(2.5rem,3.6vw,4rem)] leading-[1] tracking-[-0.015em] [overflow-wrap:break-word] [text-wrap:balance]">
                   {categoria.nombre}
                 </h3>
                 <p className={`text-base tabular-nums ${e.suave}`}>
@@ -110,9 +145,9 @@ export default function Pasillos({ tienda, irAPasillo }: { tienda: Tienda; irAPa
                 </button>
               </div>
               {muestra && (
-                <div className="relative px-4 pb-10 md:flex md:items-center md:py-16 md:pr-12 md:pl-0">
+                <div className="relative flex items-center py-16 pr-10">
                   <div className={`relative w-full overflow-hidden rounded-2xl ${e.escenario}`}>
-                    <Vista3D producto={muestra} className="h-[40svh] md:h-[58svh]" />
+                    <Vista3D producto={muestra} className="h-[52svh]" />
                   </div>
                 </div>
               )}

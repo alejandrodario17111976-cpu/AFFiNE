@@ -6,6 +6,7 @@ import type { Tienda as DatosTienda } from "@/lib/tipos";
 import { estaEnOferta } from "@/lib/formato";
 import { estiloMarca, marca3D, ProveedorMarca } from "@/lib/marca";
 import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { iniciarDesplazamiento, irA } from "@/lib/desplazamiento";
 import { precargarSonidos } from "@/lib/sonidos";
 import Escena3D from "@/components/escena/Escena3D";
 import { CarritoProvider, type ServicioPedidos } from "./carrito";
@@ -57,6 +58,9 @@ export default function Tienda({
   const marca = useMemo(() => marca3D(apariencia), [apariencia]);
   const fuentesListas = useFuentesListas(marca.titulos, marca.texto);
 
+  // Scroll suave con inercia en computadoras (en el celular queda el nativo).
+  useEffect(() => iniciarDesplazamiento(), []);
+
   // Los sonidos se decodifican en el primer toque, para que después suenen sin demora.
   useEffect(() => {
     const preparar = () => precargarSonidos();
@@ -78,7 +82,7 @@ export default function Tienda({
 
   const irAPasillo = useCallback((id: string) => {
     setFiltro(id);
-    document.getElementById("productos")?.scrollIntoView({ behavior: "smooth" });
+    irA(document.getElementById("productos"));
   }, []);
 
   useGSAP(
@@ -92,14 +96,6 @@ export default function Tienda({
             ease: "power3.out",
             scrollTrigger: { trigger: el, start: "top 90%" },
           });
-        });
-      });
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        ScrollTrigger.batch(".tarjeta-producto", {
-          start: "top 92%",
-          once: true,
-          onEnter: (lote) =>
-            gsap.from(lote, { y: 28, rotateX: 6, transformPerspective: 900, duration: 0.8, ease: "expo.out", stagger: 0.07 }),
         });
       });
       // Recalcular posiciones cuando cambia el alto de la góndola (filtros y búsqueda).

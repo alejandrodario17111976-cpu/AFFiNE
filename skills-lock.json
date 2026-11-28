@@ -141,6 +141,13 @@
       "skillPath": ".agents/skills/bfl-api/SKILL.md",
       "computedHash": "fd864392758872eef54859a67a8a5ddef7ca2da6d0ef093bf05c15e4d43050bc"
     },
+    "cartoon-3d-short": {
+      "source": "mromidev/claude-animated-shorts",
+      "commit": "e3b817b6afc6cd413466d43f11ba31209e034bbf",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "5e22407caaa66b02af5a6cb28b0a436da726cc857dfd4f09d03ee006aaa1fa28"
+    },
     "ccs-align": {
       "source": "thedotmack/claude-mem",
       "commit": "ad682a38da4cdbd2076451f595adc7db512a626c",
@@ -693,6 +700,13 @@
       "sourceType": "github",
       "skillPath": "plugin/skills/mode-creator/SKILL.md",
       "computedHash": "f555f0569217e8f20ce1d3d9403d0902e72060aa592915524710b574d05d198f"
+    },
+    "motion-design": {
+      "source": "LottieFiles/motion-design-skill",
+      "commit": "d77a9fc8cb371cab1ba5420df5bfd232cd14c9bb",
+      "sourceType": "github",
+      "skillPath": "skills/motion-design/SKILL.md",
+      "computedHash": "be5bc38a720ec04b0c78ebf33b30e2bc8fde2d0cb3c5d4f37d383059d341802f"
     },
     "motion-graphics": {
       "source": "OpenMontageInc/OpenMontage",

@@ -1,4 +1,6 @@
 import { Composition, Folder } from "remotion";
+import { SanBenito } from "./sanbenito/SanBenito";
+import L from "./sanbenito/linea.json";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -8,6 +10,26 @@ import { Title } from "./HelloWorld/Title";
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      <Folder name="SanBenito">
+        <Composition
+          id="SanBenitoHorizontal"
+          component={SanBenito}
+          durationInFrames={L.duracion}
+          fps={L.fps}
+          width={1920}
+          height={1080}
+          defaultProps={{ conAudio: false }}
+        />
+        <Composition
+          id="SanBenitoVertical"
+          component={SanBenito}
+          durationInFrames={L.duracion}
+          fps={L.fps}
+          width={1080}
+          height={1920}
+          defaultProps={{ conAudio: false }}
+        />
+      </Folder>
       <Folder name="Elements">
         <Composition
           id="Logo"

@@ -111,3 +111,6 @@ storageState.json
 .claude/skills/ffmpeg-skill/docs/demos/
 .claude/skills/ffmpeg-skill/tests/
 .claude/skills/ffmpeg-skill/evals/
+
+# Material de estudio privado del skill cartoon-3d-short (el skill pide no publicarlo)
+.claude/skills/cartoon-3d-short/references/

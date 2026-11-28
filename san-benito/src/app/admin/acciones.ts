@@ -4,6 +4,7 @@ import { mkdir, rename, unlink, writeFile } from "node:fs/promises";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import { updateTag } from "next/cache";
+import { headers } from "next/headers";
 import sharp from "sharp";
 import { asegurarDatos, rutaDatos } from "@/lib/almacen";
 import { ETIQUETA_CACHE, RUTA_TIENDA } from "@/lib/tienda";
@@ -31,17 +32,65 @@ function claveCorrecta(clave: unknown) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-async function esperarSiFalla(ok: boolean) {
-  if (!ok) await new Promise((r) => setTimeout(r, 600));
-  return ok;
+/**
+ * Intentos fallidos por conexión: con una contraseña corta (un PIN), sin este freno alguien
+ * podría probar todas las combinaciones. Después de 6 errores en 15 minutos, esa conexión
+ * espera 15 minutos aunque escriba la contraseña correcta.
+ */
+const VENTANA = 15 * 60 * 1000;
+const MAX_FALLOS = 6;
+const fallos = new Map<string, { cuenta: number; desde: number }>();
+
+/** Tope entre todas las conexiones, por si alguien prueba desde muchas a la vez. */
+const MAX_FALLOS_TOTAL = 200;
+const total = { cuenta: 0, desde: Date.now() };
+
+async function conexion() {
+  const h = await headers();
+  // La dirección que agrega el proxy del hosting (la última), no la que manda el navegador
+  const reenviada = h.get("x-forwarded-for")?.split(",").at(-1);
+  return (h.get("x-real-ip") ?? reenviada ?? "local").trim();
 }
 
-export async function verificarClave(clave: string): Promise<boolean> {
-  return esperarSiFalla(claveCorrecta(clave));
+function bloqueada(ip: string) {
+  if (Date.now() - total.desde > VENTANA) {
+    total.cuenta = 0;
+    total.desde = Date.now();
+  }
+  if (total.cuenta >= MAX_FALLOS_TOTAL) return true;
+  const f = fallos.get(ip);
+  if (!f) return false;
+  if (Date.now() - f.desde > VENTANA) {
+    fallos.delete(ip);
+    return false;
+  }
+  return f.cuenta >= MAX_FALLOS;
+}
+
+const BLOQUEO = "Demasiados intentos con contraseña incorrecta. Esperá 15 minutos y probá de nuevo.";
+
+/** true si la contraseña es correcta; si no, el mensaje para mostrar. */
+async function comprobar(clave: unknown): Promise<true | string> {
+  const ip = await conexion();
+  if (bloqueada(ip)) return BLOQUEO;
+  if (claveCorrecta(clave)) {
+    fallos.delete(ip);
+    return true;
+  }
+  const f = fallos.get(ip);
+  fallos.set(ip, { cuenta: (f?.cuenta ?? 0) + 1, desde: f?.desde ?? Date.now() });
+  total.cuenta++;
+  if (fallos.size > 5000) fallos.clear();
+  await new Promise((r) => setTimeout(r, 600));
+  return bloqueada(ip) ? BLOQUEO : "La contraseña no es correcta.";
+}
+
+export async function verificarClave(clave: string): Promise<boolean | string> {
+  return comprobar(clave);
 }
 
 export async function guardarTienda(clave: string, datos: unknown): Promise<Resultado> {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) {
+  if ((await comprobar(clave)) !== true) {
     return { ok: false, error: "La contraseña no es correcta." };
   }
 
@@ -76,7 +125,7 @@ const TIPOS_IMAGEN = new Set(["image/jpeg", "image/png", "image/webp", "image/av
  * de las fotos recortadas) y le pone un nombre nuevo para que nunca se mezcle con una anterior.
  */
 export async function subirImagen(clave: string, carpeta: "imagenes" | "afiches", formulario: FormData): Promise<ResultadoImagen> {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) {
+  if ((await comprobar(clave)) !== true) {
     return { ok: false, error: "La contraseña no es correcta." };
   }
   if (carpeta !== "imagenes" && carpeta !== "afiches") return { ok: false, error: "Carpeta inválida." };
@@ -107,7 +156,7 @@ export async function subirImagen(clave: string, carpeta: "imagenes" | "afiches"
 
 /** Borra una imagen que ya no usa ningún producto ni afiche (se llama después de guardar). */
 export async function borrarImagen(clave: string, carpeta: "imagenes" | "afiches", archivo: string): Promise<Resultado> {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) return { ok: false, error: "La contraseña no es correcta." };
+  if ((await comprobar(clave)) !== true) return { ok: false, error: "La contraseña no es correcta." };
   if ((carpeta !== "imagenes" && carpeta !== "afiches") || !ARCHIVO_IMAGEN.test(archivo)) {
     return { ok: false, error: "Imagen inválida." };
   }
@@ -122,17 +171,17 @@ export async function borrarImagen(clave: string, carpeta: "imagenes" | "afiches
 /* ---------- Pedidos y clientes (solo AGL) ---------- */
 
 export async function verPedidos(clave: string) {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  if ((await comprobar(clave)) !== true) return null;
   return pedidosServidor.listarPedidos();
 }
 
 export async function cambiarEstadoPedido(clave: string, numero: string, estado: EstadoPedido) {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  if ((await comprobar(clave)) !== true) return null;
   if (!ESTADOS_PEDIDO.includes(estado)) return null;
   return pedidosServidor.cambiarEstado(String(numero), estado);
 }
 
 export async function verClientes(clave: string) {
-  if (!(await esperarSiFalla(claveCorrecta(clave)))) return null;
+  if ((await comprobar(clave)) !== true) return null;
   return pedidosServidor.listarClientes();
 }

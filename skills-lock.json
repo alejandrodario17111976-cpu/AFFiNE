@@ -1086,6 +1086,48 @@
       "skillPath": "skills/social/SKILL.md",
       "computedHash": "a8a42ff595b0fa8e2b3be3a96a88fe0a0fffc7c95076c7d295a0d09f794406ee"
     },
+    "solidcraft-checking": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-checking/SKILL.md",
+      "computedHash": "ae043a6a669be1fa3108c5f5730b1c3c8d14e71ef37024a25e2768739a42c38b"
+    },
+    "solidcraft-editing": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-editing/SKILL.md",
+      "computedHash": "ff04f5ca18f0ea7c8502e929f0842d6fb7731d64dde3cf4a13a9699184c6c43e"
+    },
+    "solidcraft-mechanisms": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-mechanisms/SKILL.md",
+      "computedHash": "e3e54a30b9f7cb0501f776ad9a782d3d35b78d26e568610c546651d139dfa68a"
+    },
+    "solidcraft-modeling": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-modeling/SKILL.md",
+      "computedHash": "904c29867d25f951cfd72bd2f2a1cf5e72e7897067d2b2cd74e4ba6f82d3d7e5"
+    },
+    "solidcraft-reporting": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-reporting/SKILL.md",
+      "computedHash": "484738c1565a25b44fb5adbe38cdac2d25317c31ccda950428d56bbfe4f3f073"
+    },
+    "solidcraft-sheetmetal": {
+      "source": "tangency-labs/solidcraft",
+      "commit": "64be5fc7982d197d2b207672aa02cc7b92a4fb1b",
+      "sourceType": "github",
+      "skillPath": "skills/solidcraft-sheetmetal/SKILL.md",
+      "computedHash": "14edfda212189b4edbacbddf568cbd56e24f7f7ba48cfe358b88fd562949ef7f"
+    },
     "sound-effects": {
       "source": "OpenMontageInc/OpenMontage",
       "commit": "2e003e65fa99a0f329478a2c1cdcf26bc481933a",

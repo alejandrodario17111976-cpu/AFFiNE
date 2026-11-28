@@ -51,6 +51,9 @@ export const SECCIONES_INICIALES: Secciones = { pasillos: true, ofertas: true, a
 /** Nombre de archivo de una imagen guardada en el servidor (data/imagenes o data/afiches). */
 export const ARCHIVO_IMAGEN = /^[a-z0-9][a-z0-9-]{0,80}\.(webp|png|jpg|jpeg)$/;
 
+/** Foto de un producto o afiche: un archivo del servidor, o una foto subida desde AGL en la página de claude.ai. */
+const IMAGEN_GUARDADA = /^(?:[a-z0-9][a-z0-9-]{0,80}\.(?:webp|png|jpg|jpeg)|\/_blob\/[A-Za-z0-9_-]{8,64})$/;
+
 /** Colores de versiones anteriores del sitio. */
 const COLORES_VIEJOS: Record<string, ColorCategoria> = { azul: "principal", amarillo: "acento", rojo: "destacado" };
 
@@ -173,7 +176,7 @@ function normalizarProducto(v: unknown, i: number, categorias: Set<string>): Pro
   let anterior = precio(p.precioAnterior, `El precio anterior de "${nombre}"`, true);
   if (anterior !== null && anterior <= precioActual) anterior = null;
   const imagen = texto(p.imagen, `La foto de "${nombre}"`, { max: 90, requerido: false });
-  if (imagen && !ARCHIVO_IMAGEN.test(imagen)) throw new ErrorDatos(`La foto de "${nombre}" no es válida.`);
+  if (imagen && !IMAGEN_GUARDADA.test(imagen)) throw new ErrorDatos(`La foto de "${nombre}" no es válida.`);
   const promosEntrada = Array.isArray(p.promos) ? p.promos : [];
   if (promosEntrada.length > 5) throw new ErrorDatos(`"${nombre}" puede tener hasta 5 precios por cantidad.`);
   const promos: Promo[] = promosEntrada
@@ -297,7 +300,7 @@ export function normalizarTienda(v: unknown): Tienda {
   const afiches: Afiche[] = afichesEntrada.map((v, i) => {
     const a = obj(v, `Afiche ${i + 1}`);
     const imagen = texto(a.imagen, `La imagen del afiche ${i + 1}`, { max: 90 });
-    if (!ARCHIVO_IMAGEN.test(imagen)) throw new ErrorDatos(`La imagen del afiche ${i + 1} no es válida.`);
+    if (!IMAGEN_GUARDADA.test(imagen)) throw new ErrorDatos(`La imagen del afiche ${i + 1} no es válida.`);
     return { imagen, titulo: texto(a.titulo, `El título del afiche ${i + 1}`, { max: 80, requerido: false }) };
   });
 

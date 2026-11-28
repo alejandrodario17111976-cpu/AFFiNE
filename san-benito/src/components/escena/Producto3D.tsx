@@ -10,6 +10,7 @@ import { urlMedio } from "@/lib/formato";
 import { useMarca } from "@/lib/marca";
 import { texturaEtiqueta } from "./etiquetas";
 import { movimientoReducido, puntero, type Interaccion } from "./compartido";
+import { crearSolido, type Forma } from "./solido";
 
 export type Calidad = "alta" | "normal";
 
@@ -76,6 +77,8 @@ export function LucesTienda({
       <ambientLight intensity={0.45} color="#FFF4E0" />
       <directionalLight position={[3, 5, 4]} intensity={2.4} color="#FFF1DA" />
       <directionalLight position={[-5, 2.5, -3]} intensity={1.1} color="#B9CBEA" />
+      {/* Contraluz cálido: dibuja el canto de los sólidos y los separa del fondo */}
+      <directionalLight position={[3, 3.5, -4.5]} intensity={1.6} color="#FFE3B0" />
       {dinamica && <LuzQueSigueAlPuntero />}
       {interaccion && <LuzQueSigueALaTarjeta interaccion={interaccion} />}
     </>
@@ -381,61 +384,13 @@ class SiFalla extends Component<{ alternativa: ReactNode; children: ReactNode },
 
 /* ---------- Producto ---------- */
 
-/* ---------- Foto real del producto, con volumen ---------- */
-
-type Forma = "cilindro" | "bolsa" | "plana";
+/* ---------- Foto real del producto, como sólido ---------- */
 
 function formaDe(envase: Envase): Forma {
   if (envase === "lata" || envase === "frasco" || envase === "botella") return "cilindro";
-  if (envase === "bolsa" || envase === "caja" || envase === "carton") return "bolsa";
+  if (envase === "bolsa") return "bolsa";
+  if (envase === "caja" || envase === "carton") return "caja";
   return "plana";
-}
-
-/**
- * Medio cilindro donde la foto se ve igual que la original de frente: cada columna de la imagen
- * va al ángulo que le corresponde (u = (sen θ + 1) / 2), así al girar se comporta como una lata real.
- */
-function medioCilindro(ancho: number, alto: number) {
-  const radio = ancho / 2;
-  const columnas = 48;
-  const filas = 2;
-  const posiciones: number[] = [];
-  const uvs: number[] = [];
-  const indices: number[] = [];
-  for (let f = 0; f <= filas; f++) {
-    const v = f / filas;
-    for (let c = 0; c <= columnas; c++) {
-      const angulo = -Math.PI / 2 + (Math.PI * c) / columnas;
-      posiciones.push(radio * Math.sin(angulo), (v - 0.5) * alto, radio * Math.cos(angulo));
-      uvs.push((Math.sin(angulo) + 1) / 2, v);
-    }
-  }
-  for (let f = 0; f < filas; f++) {
-    for (let c = 0; c < columnas; c++) {
-      const a = f * (columnas + 1) + c;
-      const b = a + columnas + 1;
-      indices.push(a, a + 1, b, b, a + 1, b + 1);
-    }
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute("position", new THREE.Float32BufferAttribute(posiciones, 3));
-  g.setAttribute("uv", new THREE.Float32BufferAttribute(uvs, 2));
-  g.setIndex(indices);
-  g.computeVertexNormals();
-  return g;
-}
-
-/** Plano con el centro abultado hacia afuera, como un paquete lleno. */
-function planoAbultado(ancho: number, alto: number, bulto: number) {
-  const g = new THREE.PlaneGeometry(ancho, alto, 24, 32);
-  const pos = g.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const u = pos.getX(i) / (ancho / 2);
-    const v = pos.getY(i) / (alto / 2);
-    pos.setZ(i, bulto * (1 - u * u) * (1 - v * v * 0.55));
-  }
-  g.computeVertexNormals();
-  return g;
 }
 
 function ajustarTextura(t: THREE.Texture) {
@@ -443,55 +398,63 @@ function ajustarTextura(t: THREE.Texture) {
   t.anisotropy = 8;
 }
 
-function Recorte3D({ archivo, envase, alListo }: { archivo: string; envase: Envase; alListo?: () => void }) {
+/** Terminación de cada tipo de envase: plástico brillante, cartón mate, foto impresa. */
+const ACABADO: Record<Forma, { rugosidad: number; barniz: number }> = {
+  cilindro: { rugosidad: 0.28, barniz: 0.6 },
+  bolsa: { rugosidad: 0.34, barniz: 0.5 },
+  caja: { rugosidad: 0.55, barniz: 0.15 },
+  plana: { rugosidad: 0.6, barniz: 0 },
+};
+
+/**
+ * El producto como sólido (revolución o extrusión con aristas redondeadas, ver solido.ts)
+ * con su foto original proyectada de frente.
+ */
+function Recorte3D({
+  archivo,
+  envase,
+  calidad,
+  alListo,
+}: {
+  archivo: string;
+  envase: Envase;
+  calidad: Calidad;
+  alListo?: () => void;
+}) {
   const textura = useTexture(urlMedio("imagenes", archivo));
   const forma = formaDe(envase);
-
-  // Ya cargó (si no, este componente seguiría suspendido). Al salir de pantalla se libera
-  // la textura de la placa de video; si vuelve a verse, three.js la sube de nuevo sola.
-  useEffect(() => {
-    alListo?.();
-    return () => textura.dispose();
-  }, [textura, alListo]);
-
-  const { geometria, ancho, grosor } = useMemo(() => {
+  const geometria = useMemo(() => {
     ajustarTextura(textura);
-    const img = textura.image as { width: number; height: number };
-    const aspecto = img.width / img.height;
-    let alto = 2.3;
-    let an = alto * aspecto;
-    if (an > 2.7) {
-      an = 2.7;
-      alto = an / aspecto;
-    }
-    const g =
-      forma === "cilindro"
-        ? medioCilindro(an, alto)
-        : forma === "bolsa"
-          ? planoAbultado(an, alto, Math.min(0.22, an * 0.12))
-          : planoAbultado(an, alto, 0.025);
-    return { geometria: g, ancho: an, grosor: forma === "bolsa" ? 0.07 : 0.035 };
+    return crearSolido(textura.image as HTMLImageElement, forma);
   }, [textura, forma]);
 
-  const brillo = forma === "plana" ? 0.6 : 0.34;
-  const capas = forma === "cilindro" ? [] : [-0.5, 0, 0.5].map((k) => k * grosor);
+  // Ya cargó (si no, este componente seguiría suspendido). Al salir de pantalla se libera
+  // la memoria de la placa de video; si vuelve a verse, se arma y se sube de nuevo.
+  useEffect(() => {
+    alListo?.();
+    return () => {
+      textura.dispose();
+      geometria.dispose();
+    };
+  }, [textura, geometria, alListo]);
 
+  const { rugosidad, barniz } = ACABADO[forma];
   return (
-    <group>
-      {/* Frente y dorso: la misma foto, cada una mirando hacia su lado */}
-      {[0, Math.PI].map((giro) => (
-        <mesh key={giro} geometry={geometria} rotation-y={giro} position-z={forma === "cilindro" ? 0 : giro ? -grosor / 2 : grosor / 2}>
-          <meshStandardMaterial map={textura} alphaTest={0.45} roughness={brillo} metalness={0.04} envMapIntensity={1.05} />
-        </mesh>
-      ))}
-      {/* Canto: capas de la misma silueta, más oscuras, para que tenga espesor */}
-      {capas.map((z) => (
-        <mesh key={z} position-z={z}>
-          <planeGeometry args={[ancho, ancho / ((textura.image as { width: number }).width / (textura.image as { height: number }).height)]} />
-          <meshStandardMaterial map={textura} color="#9a9086" alphaTest={0.45} side={THREE.DoubleSide} roughness={0.8} />
-        </mesh>
-      ))}
-    </group>
+    <mesh geometry={geometria}>
+      {calidad === "alta" && barniz > 0 ? (
+        <meshPhysicalMaterial
+          map={textura}
+          alphaTest={0.5}
+          side={THREE.DoubleSide}
+          roughness={rugosidad}
+          clearcoat={barniz}
+          clearcoatRoughness={0.25}
+          envMapIntensity={1.1}
+        />
+      ) : (
+        <meshStandardMaterial map={textura} alphaTest={0.5} side={THREE.DoubleSide} roughness={rugosidad} metalness={0.03} envMapIntensity={1.1} />
+      )}
+    </mesh>
   );
 }
 
@@ -537,7 +500,7 @@ export function Producto3D({
       {producto.imagen && !producto.modelo ? (
         <SiFalla alternativa={procedural}>
           <Suspense fallback={null}>
-            <Recorte3D archivo={producto.imagen} envase={producto.envase} alListo={alListo} />
+            <Recorte3D archivo={producto.imagen} envase={producto.envase} calidad={calidad} alListo={alListo} />
           </Suspense>
         </SiFalla>
       ) : producto.modelo ? (

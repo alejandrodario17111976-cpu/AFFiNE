@@ -32,7 +32,8 @@ export type ResultadoImagen = { ok: true; archivo: string } | { ok: false; error
 type Carpeta = "imagenes" | "afiches";
 
 export interface Acciones {
-  verificarClave: (clave: string) => Promise<boolean>;
+  /** true si es correcta; false o un mensaje (por ejemplo, demasiados intentos) si no. */
+  verificarClave: (clave: string) => Promise<boolean | string>;
   guardarTienda: (clave: string, datos: unknown) => Promise<Resultado>;
   subirImagen?: (clave: string, carpeta: Carpeta, formulario: FormData) => Promise<ResultadoImagen>;
   borrarImagen?: (clave: string, carpeta: Carpeta, archivo: string) => Promise<Resultado>;
@@ -55,7 +56,9 @@ async function prepararImagen(archivo: File, lado: number): Promise<Blob> {
     lienzo.height = Math.round(bitmap.height * factor);
     lienzo.getContext("2d")?.drawImage(bitmap, 0, 0, lienzo.width, lienzo.height);
     const blob = await new Promise<Blob | null>((r) => lienzo.toBlob(r, "image/webp", 0.9));
-    return blob && blob.size < archivo.size ? blob : archivo;
+    // Si el formato original no es web (HEIC del iPhone), se usa la versión convertida aunque pese más
+    const web = ["image/webp", "image/png", "image/jpeg"].includes(archivo.type);
+    return blob && (blob.size < archivo.size || !web) ? blob : archivo;
   } catch {
     return archivo;
   }
@@ -175,10 +178,12 @@ function Acceso({
   onEntrar,
   verificar,
   claveLocal,
+  volver,
 }: {
   onEntrar: (clave: string) => void;
   verificar: Acciones["verificarClave"];
   claveLocal?: boolean;
+  volver?: () => void;
 }) {
   const [clave, setClave] = useState("");
   const [error, setError] = useState("");
@@ -191,10 +196,10 @@ function Acceso({
           e.preventDefault();
           setCargando(true);
           setError("");
-          const ok = await verificar(clave);
+          const r = await verificar(clave);
           setCargando(false);
-          if (ok) onEntrar(clave);
-          else setError("La contraseña no es correcta");
+          if (r === true) onEntrar(clave);
+          else setError(typeof r === "string" ? r : "La contraseña no es correcta");
         }}
       >
         <h1 className="font-titulo text-5xl font-semibold tracking-[0.2em] text-lapis-hondo">AGL</h1>
@@ -218,9 +223,15 @@ function Acceso({
         <Boton type="submit" variante="oscuro" disabled={cargando || !clave}>
           {cargando ? "Entrando…" : "Entrar"}
         </Boton>
-        <Link href="/" className="text-sm text-tinta-2 underline-offset-4 hover:underline">
-          Volver al sitio
-        </Link>
+        {volver ? (
+          <button type="button" onClick={volver} className="cursor-pointer text-left text-sm text-tinta-2 underline-offset-4 hover:underline">
+            Volver al sitio
+          </button>
+        ) : (
+          <Link href="/" className="text-sm text-tinta-2 underline-offset-4 hover:underline">
+            Volver al sitio
+          </Link>
+        )}
       </form>
     </main>
   );
@@ -239,13 +250,25 @@ export default function EditorAdmin({
   modo,
   acciones,
   claveLocal = false,
+  volver,
+  claveInicial = null,
+  avisarAlSalir = true,
+  aviso,
 }: {
   inicial: Tienda;
   modo: ModoAcceso;
   acciones: Acciones;
   claveLocal?: boolean;
+  /** En la vista previa el panel se abre dentro de la página: "Volver al sitio" lo cierra. */
+  volver?: () => void;
+  /** Contraseña ya verificada en esta pestaña (la página se recarga al publicar). */
+  claveInicial?: string | null;
+  /** Preguntar antes de salir con cambios sin guardar (en la vista previa la página se recarga sola al guardar). */
+  avisarAlSalir?: boolean;
+  /** Aviso fijo debajo del encabezado. */
+  aviso?: ReactNode;
 }) {
-  const [clave, setClave] = useState<string | null>(modo === "libre" ? "" : null);
+  const [clave, setClave] = useState<string | null>(claveInicial ?? (modo === "libre" ? "" : null));
   const [afiches, setAfiches] = useState<Afiche[]>(inicial.afiches);
   const [subiendo, setSubiendo] = useState<string | null>(null);
   const [confirmar, setConfirmar] = useState<string | null>(null);
@@ -268,11 +291,11 @@ export default function EditorAdmin({
   const [porcentaje, setPorcentaje] = useState("");
 
   useEffect(() => {
-    if (!sucio) return;
+    if (!sucio || !avisarAlSalir) return;
     const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
     window.addEventListener("beforeunload", avisar);
     return () => window.removeEventListener("beforeunload", avisar);
-  }, [sucio]);
+  }, [sucio, avisarAlSalir]);
 
   const visibles = useMemo(() => {
     const q = sinAcentos(busqueda.trim());
@@ -302,7 +325,7 @@ export default function EditorAdmin({
   if (clave === null) {
     return (
       <div style={estiloMarca(apariencia)} className="marca font-texto text-tinta">
-        <Acceso onEntrar={setClave} verificar={acciones.verificarClave} claveLocal={claveLocal} />
+        <Acceso onEntrar={setClave} verificar={acciones.verificarClave} claveLocal={claveLocal} volver={volver} />
       </div>
     );
   }
@@ -466,9 +489,19 @@ export default function EditorAdmin({
         <div className="mx-auto flex max-w-[1280px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 md:px-8">
           <h1 className="font-titulo text-2xl font-semibold tracking-[0.18em] text-oro">AGL</h1>
           <span className="text-sm text-marfil/60">{negocio.nombre}</span>
-          <Link href="/" target="_blank" className="text-sm text-marfil/60 underline-offset-4 hover:text-marfil hover:underline">
-            Ver sitio
-          </Link>
+          {volver ? (
+            <button
+              type="button"
+              onClick={volver}
+              className="cursor-pointer text-sm text-marfil/60 underline-offset-4 hover:text-marfil hover:underline"
+            >
+              Volver al sitio
+            </button>
+          ) : (
+            <Link href="/" target="_blank" className="text-sm text-marfil/60 underline-offset-4 hover:text-marfil hover:underline">
+              Ver sitio
+            </Link>
+          )}
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <span className="mr-2 text-sm text-marfil/60" aria-live="polite">
               {estado?.tipo === "guardando" ? estado.texto : sucio ? "Hay cambios sin guardar" : "Todo guardado"}
@@ -510,7 +543,12 @@ export default function EditorAdmin({
           <span className="mx-auto block max-w-[1280px]">{estado.texto}</span>
         </p>
       )}
-      {modo === "libre" && (
+      {aviso && (
+        <div className="bg-lapis-hondo px-4 py-2.5 text-sm text-marfil/85 md:px-8">
+          <div className="mx-auto max-w-[1280px]">{aviso}</div>
+        </div>
+      )}
+      {modo === "libre" && !volver && (
         <p className="bg-lapis-hondo px-4 py-2 text-sm text-marfil/80 md:px-8">
           <span className="mx-auto block max-w-[1280px]">
             Modo local sin contraseña. Antes de publicar el sitio, configurá ADMIN_PASSWORD

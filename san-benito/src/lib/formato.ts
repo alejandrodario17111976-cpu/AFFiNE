@@ -105,6 +105,8 @@ export function enlaceMapa(direccion: string, localidad: string, provincia: stri
 
 /** Dirección de una imagen subida (producto o afiche). */
 export function urlMedio(carpeta: "imagenes" | "afiches", archivo: string) {
+  // Fotos subidas desde AGL en la página publicada en claude.ai: ya son una dirección propia
+  if (archivo.startsWith("/_blob/")) return archivo;
   const base = process.env.NEXT_PUBLIC_BASE_MEDIOS ?? "/medios";
   return `${base}/${carpeta}/${archivo}`;
 }

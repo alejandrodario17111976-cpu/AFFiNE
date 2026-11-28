@@ -7,6 +7,7 @@ Sitio web de San Benito (Las Catitas y La Dormida): unos 180 productos reales en
 - Animaciones con Animate UI (Motion), GSAP ScrollTrigger y React Three Fiber.
 - Sonidos hechos con earshot (sin licencias): agregar y quitar productos, abrir y cerrar el ticket, enviar el pedido, cambiar de pasillo y ver más productos. Se apagan desde el menú.
 - Scroll suave con inercia en computadoras (Lenis) y escena 3D sincronizada con el scroll. Con cientos de productos, cada tarjeta muestra la foto y arma su 3D recién cuando aparece en pantalla.
+- Cada producto es un sólido armado a partir de su foto, con el método de un programa CAD (como SolidCraft): la silueta de la foto es el croquis; las botellas, latas y frascos salen por revolución de ese perfil, y las bolsas, cajas y fotos planas por extrusión con espesor y aristas redondeadas. La foto original se proyecta de frente sin cambios (`src/components/escena/solido.ts`).
 
 ## Cómo verlo en tu computadora
 
@@ -92,13 +93,25 @@ Todo se guarda en `data/tienda.json`; las fotos en `data/imagenes/` y los afiche
 
 Las fotos de los productos de las listas de precios se buscaron en los catálogos de Carrefour, Jumbo, Día y ChangoMás y se recortaron sin fondo. Los productos sin foto (sueltos, fiambres por kilo, helados, panadería) se dibujan en 3D con una etiqueta con su nombre; podés subir la foto propia cuando quieras.
 
-## Vista previa sin servidor
+## La tienda publicada en claude.ai (con AGL)
+
+La tienda también se publica como página de claude.ai, con un enlace para compartir. Ahí AGL funciona sin servidor:
+
+- Menú de las tres rayitas → **AGL** → el PIN de AGL.
+- Se cambian precios, ofertas, productos, fotos, afiches y textos igual que en el sitio con servidor.
+- **Guardar cambios** publica de nuevo la página con los datos nuevos adentro, y se actualiza para todos los que la tienen abierta.
+- **Subir foto** guarda la foto dentro de la propia página.
+- Solo la cuenta de claude.ai dueña de la página (o quien tenga permiso de edición) puede guardar o subir fotos. Para cualquier otra persona, la página es de solo lectura aunque sepa el PIN.
+- Los pedidos y clientes no están en esta versión: necesitan el sitio con servidor.
+
+Para armarla:
 
 ```bash
-npm run vista-previa
+CLAVE_AGL=<el PIN de AGL> npm run vista-previa
 ```
 
-Genera en `vista-previa/dist/` una versión estática con los datos actuales, sin AGL (no hay servidor donde guardar).
+- En el código queda solo la huella del PIN (PBKDF2), nunca el PIN, y se guarda en `vista-previa/.clave-agl`, fuera del repositorio, para los armados siguientes.
+- **Antes de volver a publicarla desde acá**, bajá los datos que se editaron desde AGL: están en la página publicada, dentro de `<script id="datos-tienda">`. Guardalos en un archivo y armá con `DATOS_TIENDA=ese-archivo.json`; si no, se pisan los cambios hechos desde la página.
 
 ## Publicar el sitio (con enlace para compartir)
 
@@ -106,7 +119,7 @@ Para que cualquiera entre con un enlace y los pedidos lleguen a AGL, el sitio ti
 
 1. Crear una cuenta en [railway.com](https://railway.com) e iniciar sesión con GitHub.
 2. **New Project → Deploy from GitHub repo** → elegir este repositorio. En **Settings → Root Directory** poner `san-benito` (usa el `Dockerfile` que ya está).
-3. **Variables**: agregar `ADMIN_PASSWORD` con la contraseña de AGL.
+3. **Variables**: agregar `ADMIN_PASSWORD` con la contraseña de AGL. Conviene que sea larga y distinta del PIN de la página de claude.ai: este panel muestra los DNI y celulares de los clientes. Después de 6 intentos fallidos, esa conexión espera 15 minutos.
 4. **Volume**: agregar un volumen montado en `/datos` (ahí quedan precios, pedidos, clientes y fotos; sobrevive a cada actualización).
 5. **Settings → Networking → Generate Domain**: ese es el enlace para compartir (por ejemplo `san-benito.up.railway.app`). También se puede conectar un dominio propio.
 

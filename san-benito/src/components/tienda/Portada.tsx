@@ -52,7 +52,7 @@ export default function Portada({
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // "San Benito" entra letra por letra, cada una saliendo de su propia máscara
-        const titulo = SplitText.create(".portada-titulo", { type: "chars", mask: "chars" });
+        const titulo = SplitText.create(".portada-titulo", { type: "words,chars", mask: "chars" });
         gsap.from(titulo.chars, {
           yPercent: 110,
           rotate: 6,

@@ -51,3 +51,6 @@ next-env.d.ts
 /data/pedidos.json
 /data/clientes.json
 /data/*.tmp
+
+# Huella del PIN de AGL para la página de claude.ai (no se sube)
+/vista-previa/.clave-agl

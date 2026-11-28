@@ -1,0 +1,6 @@
+node_modules
+.next
+vista-previa/dist
+data/pedidos.json
+data/clientes.json
+.env*

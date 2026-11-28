@@ -1,0 +1,29 @@
+{
+  "fps": 30,
+  "compas": 80,
+  "duracion": 1950,
+  "solape": 12,
+  "escenas": {
+    "apertura": { "desde": 0, "dur": 160 },
+    "carrusel": { "desde": 160, "dur": 160 },
+    "catalogo": { "desde": 320, "dur": 240 },
+    "buscar": { "desde": 560, "dur": 160 },
+    "ticket": { "desde": 720, "dur": 240 },
+    "envio": { "desde": 960, "dur": 240 },
+    "ofertas": { "desde": 1200, "dur": 160 },
+    "negocio": { "desde": 1360, "dur": 160 },
+    "ubicacion": { "desde": 1520, "dur": 160 },
+    "cierre": { "desde": 1680, "dur": 270 }
+  },
+  "momentos": {
+    "apertura": { "filete": 10, "letras": 18, "eslogan": 46 },
+    "catalogo": { "contador": 8, "pasillo0": 40, "cadaPasillo": 32 },
+    "buscar": { "toques": [52, 92], "vuelo": 26 },
+    "ticket": { "imprime": 16, "fin": 136, "total": 150 },
+    "envio": { "toque": 44, "enviado": 52, "listo": 132 },
+    "ofertas": { "etiquetas": [30, 46], "afiches": 14 },
+    "negocio": { "toque": 46, "precios": 92 },
+    "ubicacion": { "pines": [56, 76] },
+    "cierre": { "pasos": [64, 80, 96], "final": 250 }
+  }
+}

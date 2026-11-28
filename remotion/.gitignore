@@ -1,0 +1,17 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+
+# Video de San Benito: copias de recursos del sitio y audio generado (scripts/preparar-recursos.sh los rehace)
+public/sanbenito/afiches
+public/sanbenito/audio
+public/sanbenito/fuentes
+public/sanbenito/productos
+public/sanbenito/sonidos
+public/sanbenito/texturas
+audio-sanbenito/*.wav
+audio-sanbenito/__pycache__
